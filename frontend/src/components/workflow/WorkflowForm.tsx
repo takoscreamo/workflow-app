@@ -33,6 +33,7 @@ export function WorkflowForm({
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +50,7 @@ export function WorkflowForm({
         input_data: ''
       });
       setSelectedFile(null);
+      setIsExpanded(false);
     } catch (error) {
       // エラーは親コンポーネントで処理
     } finally {
@@ -67,69 +69,81 @@ export function WorkflowForm({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">新しいワークフローを作成</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <InputField
-          label="ワークフロー名"
-          value={formData.name}
-          onChange={(value) => setFormData({ ...formData, name: value })}
-          placeholder="ワークフロー名を入力"
-          required
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SelectField
-            label="入力種別"
-            value={formData.input_type}
-            onChange={(value) => setFormData({ ...formData, input_type: value as 'text' | 'pdf' })}
-            options={inputTypeOptions}
-          />
-          
-          <SelectField
-            label="出力種別"
-            value={formData.output_type}
-            onChange={(value) => setFormData({ ...formData, output_type: value as 'text' | 'pdf' })}
-            options={outputTypeOptions}
-          />
-        </div>
+    <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">新しいワークフローを作成</h2>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? '折りたたむ' : '展開'}
+        </Button>
+      </div>
+      
+      {isExpanded && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <InputField
+              label="ワークフロー名"
+              value={formData.name}
+              onChange={(value) => setFormData({ ...formData, name: value })}
+              placeholder="ワークフロー名を入力"
+              required
+            />
+            
+            <SelectField
+              label="入力種別"
+              value={formData.input_type}
+              onChange={(value) => setFormData({ ...formData, input_type: value as 'text' | 'pdf' })}
+              options={inputTypeOptions}
+            />
+            
+            <SelectField
+              label="出力種別"
+              value={formData.output_type}
+              onChange={(value) => setFormData({ ...formData, output_type: value as 'text' | 'pdf' })}
+              options={outputTypeOptions}
+            />
+          </div>
 
-        {formData.input_type === 'text' ? (
-          <TextareaField
-            label="入力データ"
-            value={formData.input_data}
-            onChange={(value) => setFormData({ ...formData, input_data: value })}
-            placeholder="入力テキストを入力してください"
-            rows={4}
-          />
-        ) : (
-          <FileUpload
-            label="PDFファイル"
-            accept=".pdf"
-            onChange={setSelectedFile}
-          />
-        )}
-
-        <div className="flex gap-2">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex-1"
-          >
-            {isSubmitting ? '処理中...' : submitLabel}
-          </Button>
-          {onCancel && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              キャンセル
-            </Button>
+          {formData.input_type === 'text' ? (
+            <TextareaField
+              label="入力データ"
+              value={formData.input_data}
+              onChange={(value) => setFormData({ ...formData, input_data: value })}
+              placeholder="入力テキストを入力してください"
+              rows={3}
+            />
+          ) : (
+            <FileUpload
+              label="PDFファイル"
+              accept=".pdf"
+              onChange={setSelectedFile}
+            />
           )}
-        </div>
-      </form>
+
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? '処理中...' : submitLabel}
+            </Button>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                キャンセル
+              </Button>
+            )}
+          </div>
+        </form>
+      )}
     </div>
   );
 } 

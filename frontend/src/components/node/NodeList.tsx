@@ -46,21 +46,21 @@ export function NodeList({ workflowId, nodes, onNodeDeleted, onError }: NodeList
         const formatType = config.format_type as string;
         switch (formatType) {
           case 'uppercase':
-            return 'テキストを大文字に変換';
+            return '大文字変換';
           case 'lowercase':
-            return 'テキストを小文字に変換';
+            return '小文字変換';
           case 'fullwidth':
-            return 'テキストを全角に変換';
+            return '全角変換';
           case 'halfwidth':
-            return 'テキストを半角に変換';
+            return '半角変換';
           default:
-            return 'テキストを整形';
+            return 'テキスト整形';
         }
       case 'extract_text':
-        return 'PDFからテキストを自動抽出';
+        return 'PDFテキスト抽出';
       case 'generative_ai':
         const prompt = config.prompt as string;
-        return prompt ? `AI処理: ${prompt.substring(0, 50)}...` : 'AIでテキストを処理';
+        return prompt ? `${prompt.substring(0, 30)}...` : 'AI処理';
       default:
         return 'ノード処理';
     }
@@ -68,26 +68,25 @@ export function NodeList({ workflowId, nodes, onNodeDeleted, onError }: NodeList
 
   if (nodes.length === 0) {
     return (
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-500 text-center">ノードがありません</p>
+      <div className="text-center py-2">
+        <p className="text-xs text-gray-400">ノードがありません</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-4 space-y-3">
-      <h4 className="text-sm font-medium text-gray-700">ノード一覧</h4>
+    <div className="space-y-2">
       {nodes.map((node, index) => (
-        <div key={node.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+        <div key={node.id} className="flex items-center justify-between p-2 bg-gray-50 border border-gray-100 rounded text-xs">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
               {index + 1}
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-900">
+              <div className="font-medium text-gray-700">
                 {getNodeTypeLabel(node.node_type)}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-gray-500">
                 {getNodeDescription(node)}
               </div>
             </div>
@@ -96,6 +95,7 @@ export function NodeList({ workflowId, nodes, onNodeDeleted, onError }: NodeList
             variant="danger"
             size="sm"
             onClick={() => handleDeleteNode(node.id)}
+            className="text-xs px-2 py-1"
           >
             削除
           </Button>

@@ -134,14 +134,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+      <div className="container mx-auto px-4 py-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
           ワークフローアプリケーション
         </h1>
 
         <ErrorMessage message={error} onClose={() => setError(null)} />
 
-        <WorkflowForm onSubmit={handleCreateWorkflow} />
+        <div className="mb-6">
+          <WorkflowForm onSubmit={handleCreateWorkflow} />
+        </div>
 
         <ExecutionResultModal
           isOpen={showExecutionResult}
@@ -151,22 +153,24 @@ export default function Home() {
           workflowId={executionWorkflowId || undefined}
         />
 
-        <WorkflowList
-          workflows={workflows}
-          onEdit={handleEditWorkflow}
-          onSave={handleUpdateWorkflow}
-          onDelete={handleDeleteWorkflow}
-          onRun={handleRunWorkflow}
-          onAddNode={handleAddNode}
-          onShowResult={handleShowResult}
-          onNodeDeleted={handleNodeDeleted}
-          onCancel={handleCancelEdit}
-          onError={handleError}
-          editingWorkflow={editingWorkflow}
-          showAddNode={showAddNode}
-          executingWorkflows={executingWorkflows}
-          executionResults={executionResults}
-        />
+        <div className="h-[calc(100vh-280px)] overflow-y-auto">
+          <WorkflowList
+            workflows={workflows}
+            onEdit={handleEditWorkflow}
+            onSave={handleUpdateWorkflow}
+            onDelete={handleDeleteWorkflow}
+            onRun={handleRunWorkflow}
+            onAddNode={handleAddNode}
+            onShowResult={handleShowResult}
+            onNodeDeleted={handleNodeDeleted}
+            onCancel={handleCancelEdit}
+            onError={handleError}
+            editingWorkflow={editingWorkflow}
+            showAddNode={showAddNode}
+            executingWorkflows={executingWorkflows}
+            executionResults={executionResults}
+          />
+        </div>
       </div>
     </div>
   );
