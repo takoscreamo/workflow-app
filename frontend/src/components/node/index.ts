@@ -1,1 +1,2 @@
-export { NodeForm } from './NodeForm'; 
+export { NodeForm } from './NodeForm';
+export { NodeList } from './NodeList'; 

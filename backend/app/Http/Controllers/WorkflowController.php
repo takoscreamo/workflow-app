@@ -83,6 +83,20 @@ class WorkflowController extends Controller
     }
 
     /**
+     * ノードを削除
+     */
+    public function deleteNode(string $workflowId, string $nodeId): JsonResponse
+    {
+        $success = $this->workflowUsecase->deleteNode((int) $nodeId);
+
+        if (!$success) {
+            return response()->json(['message' => 'ノードが見つかりません'], 404);
+        }
+
+        return response()->json(['message' => 'ノードが削除されました']);
+    }
+
+    /**
      * ワークフローを非同期実行
      */
     public function runWorkflow(string $id): JsonResponse

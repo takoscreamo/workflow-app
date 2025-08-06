@@ -24,6 +24,7 @@ Route::prefix('workflows')->group(function () {
     Route::put('/{id}', [WorkflowController::class, 'update']);
     Route::delete('/{id}', [WorkflowController::class, 'destroy']);
     Route::post('/{id}/nodes', [WorkflowController::class, 'addNode']);
+    Route::delete('/{workflowId}/nodes/{nodeId}', [WorkflowController::class, 'deleteNode']);
     Route::post('/{id}/run', [WorkflowController::class, 'runWorkflow']);
     Route::get('/execution/{sessionId}', [WorkflowController::class, 'getExecutionStatus']);
 });

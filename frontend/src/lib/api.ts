@@ -58,6 +58,16 @@ export const api = {
     }
   },
 
+  // ノードを削除
+  async deleteNode(workflowId: number, nodeId: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/workflows/${workflowId}/nodes/${nodeId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('ノードの削除に失敗しました');
+    }
+  },
+
   // ノードを追加
   async addNode(workflowId: number, data: AddNodeRequest): Promise<Node> {
     const response = await fetch(`${API_BASE_URL}/workflows/${workflowId}/nodes`, {

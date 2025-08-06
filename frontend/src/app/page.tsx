@@ -95,6 +95,10 @@ export default function Home() {
     setShowAddNode(showAddNode === workflowId ? null : workflowId);
   };
 
+  const handleNodeDeleted = async () => {
+    await loadWorkflows();
+  };
+
   const handleEditWorkflow = (workflow: Workflow, file: File | null = null) => {
     setEditingWorkflow(editingWorkflow === workflow.id ? null : workflow.id);
   };
@@ -137,6 +141,7 @@ export default function Home() {
           onRun={handleRunWorkflow}
           onAddNode={handleAddNode}
           onShowResult={handleShowResult}
+          onNodeDeleted={handleNodeDeleted}
           onCancel={handleCancelEdit}
           onError={handleError}
           editingWorkflow={editingWorkflow}

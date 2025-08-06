@@ -44,6 +44,17 @@ class NodeRepository implements NodeRepositoryInterface
         NodeModel::where('workflow_id', $workflowId)->delete();
     }
 
+    public function deleteById(int $nodeId): bool
+    {
+        $model = NodeModel::find($nodeId);
+        if (!$model) {
+            return false;
+        }
+
+        $model->delete();
+        return true;
+    }
+
     private function toEntity(NodeModel $model): Node
     {
         return new Node(

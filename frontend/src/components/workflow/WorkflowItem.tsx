@@ -6,6 +6,7 @@ import { SelectField } from '@/components/forms/SelectField';
 import { TextareaField } from '@/components/forms/TextareaField';
 import { FileUpload } from '@/components/forms/FileUpload';
 import { NodeForm } from '@/components/node/NodeForm';
+import { NodeList } from '@/components/node/NodeList';
 
 interface WorkflowItemProps {
   workflow: Workflow;
@@ -14,6 +15,7 @@ interface WorkflowItemProps {
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
   onShowResult: (id: number) => void;
+  onNodeDeleted: () => void;
   onCancel?: () => void;
   onError?: (error: string) => void;
   isEditing: boolean;
@@ -29,6 +31,7 @@ export function WorkflowItem({
   onRun, 
   onAddNode,
   onShowResult,
+  onNodeDeleted,
   onCancel,
   onError,
   isEditing,
@@ -208,6 +211,15 @@ export function WorkflowItem({
             onError={onError}
           />
         </div>
+      )}
+      
+      {!isEditing && !showAddNode && (
+        <NodeList
+          workflowId={workflow.id}
+          nodes={workflow.nodes}
+          onNodeDeleted={onNodeDeleted}
+          onError={onError}
+        />
       )}
     </div>
   );
