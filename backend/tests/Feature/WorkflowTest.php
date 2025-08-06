@@ -130,7 +130,7 @@ class WorkflowTest extends TestCase
             'node_type' => NodeType::GENERATIVE_AI->value,
             'config' => [
                 'prompt' => 'テストプロンプト',
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'google/gemma-3n-e2b-it:free',
                 'temperature' => 0.7,
                 'max_tokens' => 100
             ]
