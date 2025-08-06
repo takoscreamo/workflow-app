@@ -313,21 +313,23 @@ export default function Home() {
 
         {/* 実行結果表示モーダル */}
         {showExecutionResult && executionResult && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-              <div className="flex justify-between items-center mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold">実行結果</h3>
                 <button
                   onClick={() => setShowExecutionResult(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 text-xl"
                 >
                   ✕
                 </button>
               </div>
-              <div className="bg-gray-100 p-4 rounded-lg mb-4">
-                <pre className="whitespace-pre-wrap text-sm">{executionResult}</pre>
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <pre className="whitespace-pre-wrap text-sm leading-relaxed">{executionResult}</pre>
+                </div>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 p-6 border-t border-gray-200">
                 <button
                   onClick={() => copyToClipboard(executionResult)}
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
