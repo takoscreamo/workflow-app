@@ -186,7 +186,7 @@ export default function Home() {
       case NodeType.FORMATTER:
         return { format_type: 'uppercase', description: 'テキストを大文字に変換' };
       case NodeType.EXTRACT_TEXT:
-        return { file_path: '', description: 'PDFからテキストを抽出' };
+        return { description: '入力のPDFからテキストを自動抽出' };
       case NodeType.GENERATIVE_AI:
         return { 
           prompt: '以下のテキストを要約してください：', 
@@ -517,15 +517,10 @@ export default function Home() {
                         )}
 
                         {nodeType === NodeType.EXTRACT_TEXT && (
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">ファイルパス</label>
-                            <input
-                              type="text"
-                              value={nodeConfig.file_path as string || ''}
-                              onChange={(e) => setNodeConfig({ ...nodeConfig, file_path: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="uploads/filename.pdf"
-                            />
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <p className="text-sm text-blue-700">
+                              PDFファイルは入力時にアップロードしてください。このノードは入力のPDFからテキストを自動抽出します。
+                            </p>
                           </div>
                         )}
 
