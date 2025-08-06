@@ -28,7 +28,8 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error('ワークフローの作成に失敗しました');
+      const errorData = await response.json().catch(() => ({ message: 'ワークフローの作成に失敗しました' }));
+      throw new Error(errorData.message || 'ワークフローの作成に失敗しました');
     }
     return response.json();
   },
@@ -48,9 +49,8 @@ export const api = {
     console.log('Update response status:', response.status);
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Update failed with status:', response.status, 'error:', errorText);
-      throw new Error('ワークフローの更新に失敗しました');
+      const errorData = await response.json().catch(() => ({ message: 'ワークフローの更新に失敗しました' }));
+      throw new Error(errorData.message || 'ワークフローの更新に失敗しました');
     }
     
     const result = await response.json();
@@ -88,7 +88,8 @@ export const api = {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error('ノードの追加に失敗しました');
+      const errorData = await response.json().catch(() => ({ message: 'ノードの追加に失敗しました' }));
+      throw new Error(errorData.message || 'ノードの追加に失敗しました');
     }
     return response.json();
   },

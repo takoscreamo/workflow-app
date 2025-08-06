@@ -7,15 +7,24 @@ import { api } from '@/lib/api';
 
 interface NodeFormProps {
   workflowId: number;
+  workflow?: {
+    input_type: string;
+    nodes: Array<{ id: number; node_type: string }>;
+  };
   onSuccess?: () => void;
   onCancel?: () => void;
   onError?: (error: string) => void;
 }
 
-export function NodeForm({ workflowId, onSuccess, onCancel, onError }: NodeFormProps) {
+export function NodeForm({ workflowId, workflow, onSuccess, onCancel, onError }: NodeFormProps) {
   const [nodeType, setNodeType] = useState<NodeType>('' as NodeType);
   const [nodeConfig, setNodeConfig] = useState<Record<string, unknown>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // PDF入力で最初のノードの場合、EXTRACT_TEXTのみ選択可能
+  const isFirstNode = !workflow?.nodes || workflow.nodes.length === 0;
+  const isPdfInput = workflow?.input_type === 'pdf';
+  const shouldRestrictToExtractText = isPdfInput && isFirstNode;
 
   const nodeTypeOptions = [
     { value: NodeType.FORMATTER, label: 'FORMATTER - テキスト整形' },

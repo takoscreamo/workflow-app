@@ -77,10 +77,20 @@ class WorkflowController extends Controller
             ], 422);
         }
 
-        $dto = AddNodeDTO::fromRequest((int) $id, $request->all());
-        $node = $this->workflowUsecase->addNode($dto);
+        try {
+            $dto = AddNodeDTO::fromRequest((int) $id, $request->all());
+            $node = $this->workflowUsecase->addNode($dto);
 
-        return response()->json($node, 201);
+            return response()->json($node, 201);
+        } catch (\App\Domain\Entities\WorkflowDomainException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'ノードの追加に失敗しました'
+            ], 500);
+        }
     }
 
     /**

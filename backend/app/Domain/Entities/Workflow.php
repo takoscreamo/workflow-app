@@ -5,6 +5,17 @@ namespace App\Domain\Entities;
 use App\Domain\Entities\Node;
 use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * ワークフローのドメインルール違反を表す例外
+ */
+class WorkflowDomainException extends \Exception
+{
+    public function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+}
+
 class Workflow
 {
     public function __construct(
@@ -71,5 +82,30 @@ class Workflow
             updatedAt: new \DateTime(),
             nodes: $this->nodes
         );
+    }
+
+    /**
+     * ノードを追加できるかどうかを検証するドメインルール
+     * PDF入力の場合、最初のノードはEXTRACT_TEXTである必要がある
+     */
+    public function canAddNode(NodeType $nodeType): bool
+    {
+        // PDF入力で最初のノードの場合、EXTRACT_TEXTのみ許可
+        if ($this->inputType === 'pdf' && $this->nodes->isEmpty()) {
+            return $nodeType === NodeType::EXTRACT_TEXT;
+        }
+
+        return true;
+    }
+
+    /**
+     * ノード追加時のドメインルール違反をチェック
+     * @throws WorkflowDomainException
+     */
+    public function validateNodeAddition(NodeType $nodeType): void
+    {
+        if (!$this->canAddNode($nodeType)) {
+            throw new WorkflowDomainException('PDF入力の場合、最初のノードは「テキスト抽出」である必要があります');
+        }
     }
 }

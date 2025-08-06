@@ -259,6 +259,7 @@ export function WorkflowItem({
         <div className="px-4 pb-4 border-t border-gray-100">
           <NodeForm 
             workflowId={workflow.id} 
+            workflow={workflow}
             onSuccess={() => {
               onAddNode(workflow.id);
               onNodeAdded();

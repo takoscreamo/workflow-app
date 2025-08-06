@@ -64,6 +64,19 @@ class WorkflowUsecase
 
     public function addNode(AddNodeDTO $dto): Node
     {
+        // ワークフローを取得
+        $workflow = $this->workflowRepository->findById($dto->workflowId);
+        if (!$workflow) {
+            throw new \Exception('ワークフローが見つかりません');
+        }
+
+        // 既存のノードを取得してワークフローに設定
+        $existingNodes = $this->nodeRepository->findByWorkflowId($dto->workflowId);
+        $workflowWithNodes = $workflow->withNodes($existingNodes);
+
+        // ドメインルールを検証
+        $workflowWithNodes->validateNodeAddition($dto->nodeType);
+
         $node = Node::create($dto->workflowId, $dto->nodeType, $dto->config);
         return $this->nodeRepository->save($node);
     }
