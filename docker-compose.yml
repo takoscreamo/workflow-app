@@ -17,9 +17,36 @@ services:
       - DB_DATABASE=workflow_app
       - DB_USERNAME=root
       - DB_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
     depends_on:
       - mysql
       - redis
+    networks:
+      - workflow-network
+
+  # Laravel Queue Worker
+  queue-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: workflow-queue-worker
+    volumes:
+      - ./backend:/var/www/html
+      - ./backend/storage:/var/www/html/storage
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=workflow_app
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+    command: php artisan queue:work --tries=3 --timeout=300
     networks:
       - workflow-network
 

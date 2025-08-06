@@ -16,6 +16,7 @@ interface WorkflowItemProps {
   onError?: (error: string) => void;
   isEditing: boolean;
   showAddNode: boolean;
+  isExecuting?: boolean;
 }
 
 export function WorkflowItem({ 
@@ -26,7 +27,8 @@ export function WorkflowItem({
   onAddNode,
   onError,
   isEditing,
-  showAddNode
+  showAddNode,
+  isExecuting = false
 }: WorkflowItemProps) {
   const [editingName, setEditingName] = useState(workflow.name);
   const [editingInputType, setEditingInputType] = useState(workflow.input_type);
@@ -145,6 +147,7 @@ export function WorkflowItem({
               variant="primary"
               size="sm"
               onClick={() => onEdit(workflow, null)}
+              disabled={isExecuting}
             >
               編集
             </Button>
@@ -152,13 +155,15 @@ export function WorkflowItem({
               variant="success"
               size="sm"
               onClick={() => onRun(workflow.id)}
+              disabled={isExecuting}
             >
-              実行
+              {isExecuting ? '実行中...' : '実行'}
             </Button>
             <Button
               variant="warning"
               size="sm"
               onClick={() => onAddNode(workflow.id)}
+              disabled={isExecuting}
             >
               ノード追加
             </Button>
@@ -166,6 +171,7 @@ export function WorkflowItem({
               variant="danger"
               size="sm"
               onClick={() => onDelete(workflow.id)}
+              disabled={isExecuting}
             >
               削除
             </Button>

@@ -7,8 +7,11 @@ use App\Usecase\DTOs\UpdateWorkflowDTO;
 use App\Usecase\DTOs\AddNodeDTO;
 use App\Usecase\WorkflowUsecase;
 use App\Domain\Entities\NodeType;
+use App\Jobs\RunWorkflowJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class WorkflowController extends Controller
 {
@@ -80,16 +83,57 @@ class WorkflowController extends Controller
     }
 
     /**
-     * ワークフローを実行（非同期処理の準備）
+     * ワークフローを非同期実行
      */
     public function runWorkflow(string $id): JsonResponse
     {
         try {
-            $result = $this->workflowUsecase->runWorkflow((int) $id);
-            return response()->json($result);
+            // セッションIDを生成（実行状況の監視用）
+            $sessionId = 'workflow_' . $id . '_' . Str::random(10);
+
+            // 非同期ジョブをディスパッチ
+            RunWorkflowJob::dispatch((int) $id, $sessionId);
+
+            return response()->json([
+                'message' => 'ワークフロー実行を開始しました',
+                'session_id' => $sessionId,
+                'status' => 'processing'
+            ], 202);
+
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * ワークフロー実行状況を取得
+     */
+    public function getExecutionStatus(string $sessionId): JsonResponse
+    {
+        $result = DB::table('execution_results')
+            ->where('session_id', $sessionId)
+            ->first();
+
+        if (!$result) {
+            return response()->json([
+                'status' => 'not_found',
+                'message' => '実行状況が見つかりません'
+            ], 404);
+        }
+
+        $resultData = json_decode($result->result, true);
+
+        if ($result->status === 'error' || (isset($resultData['error']) && $resultData['error'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $resultData['message'] ?? '実行中にエラーが発生しました'
+            ], 400);
+        }
+
+        return response()->json([
+            'status' => 'completed',
+            'result' => $resultData
+        ]);
     }
 
     /**

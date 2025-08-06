@@ -9,7 +9,7 @@ import { WorkflowForm, WorkflowList, ExecutionResultModal } from '@/components/w
 
 export default function Home() {
   const { workflows, loading, error: workflowsError, loadWorkflows, setError: setWorkflowsError } = useWorkflows();
-  const { createWorkflow, updateWorkflow, deleteWorkflow, runWorkflow, error: actionsError, setError: setActionsError } = useWorkflowActions();
+  const { createWorkflow, updateWorkflow, deleteWorkflow, runWorkflow, error: actionsError, setError: setActionsError, isExecuting } = useWorkflowActions();
   
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [showAddNode, setShowAddNode] = useState<number | null>(null);
@@ -112,6 +112,7 @@ export default function Home() {
           onError={handleError}
           editingWorkflow={editingWorkflow}
           showAddNode={showAddNode}
+          isExecuting={isExecuting}
         />
       </div>
     </div>

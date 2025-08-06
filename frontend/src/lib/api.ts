@@ -1,6 +1,9 @@
 import { Workflow, CreateWorkflowRequest, UpdateWorkflowRequest, AddNodeRequest, WorkflowRunResult, Node } from '@/types/workflow';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+// ブラウザからのアクセス用のAPI URL
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? 'http://localhost:8000/api'  // ブラウザからのアクセス
+  : 'http://backend/api';         // サーバーサイドからのアクセス
 
 // デバッグ用ログ
 console.log('API_BASE_URL:', API_BASE_URL);
@@ -70,13 +73,22 @@ export const api = {
     return response.json();
   },
 
-  // ワークフローを実行
-  async runWorkflow(id: number): Promise<WorkflowRunResult> {
+  // ワークフローを非同期実行
+  async runWorkflow(id: number): Promise<{ session_id: string; status: string; message: string }> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}/run`, {
       method: 'POST',
     });
     if (!response.ok) {
       throw new Error('ワークフローの実行に失敗しました');
+    }
+    return response.json();
+  },
+
+  // ワークフロー実行状況を取得
+  async getExecutionStatus(sessionId: string): Promise<{ status: string; result?: WorkflowRunResult; message?: string }> {
+    const response = await fetch(`${API_BASE_URL}/workflows/execution/${sessionId}`);
+    if (!response.ok) {
+      throw new Error('実行状況の取得に失敗しました');
     }
     return response.json();
   },

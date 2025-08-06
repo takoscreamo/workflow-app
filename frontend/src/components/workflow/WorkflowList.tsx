@@ -1,5 +1,5 @@
 import { Workflow } from '@/types/workflow';
-import { WorkflowItem } from './WorkflowItem';
+import { WorkflowItem } from '@/components/workflow/WorkflowItem';
 
 interface WorkflowListProps {
   workflows: Workflow[];
@@ -10,6 +10,7 @@ interface WorkflowListProps {
   onError?: (error: string) => void;
   editingWorkflow: number | null;
   showAddNode: number | null;
+  isExecuting?: boolean;
 }
 
 export function WorkflowList({ 
@@ -20,7 +21,8 @@ export function WorkflowList({
   onAddNode,
   onError,
   editingWorkflow,
-  showAddNode
+  showAddNode,
+  isExecuting = false
 }: WorkflowListProps) {
   return (
     <div className="bg-white rounded-lg shadow">
@@ -44,6 +46,7 @@ export function WorkflowList({
               onError={onError}
               isEditing={editingWorkflow === workflow.id}
               showAddNode={showAddNode === workflow.id}
+              isExecuting={isExecuting}
             />
           ))
         )}
