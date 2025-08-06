@@ -55,8 +55,8 @@ cd workflow-app
 # バックエンドの環境変数を設定
 cp backend/.env.example backend/.env
 
-# OpenAI APIキーを設定（オプション）
-echo "OPENAI_API_KEY=your-api-key-here" >> backend/.env
+# OpenRouter APIキーを設定（オプション）
+echo "OPENROUTER_API_KEY=your-api-key-here" >> backend/.env
 
 # フロントエンドの環境変数を設定
 echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api" > frontend/.env.local
@@ -109,10 +109,10 @@ php artisan db:seed
    - **テキスト出力**: モーダルで表示、コピー機能付き
    - **PDF出力**: TCPDFライブラリで日本語対応PDF生成・ダウンロード
 
-3. **ノード処理システム**
+3. **ノード処理システム** ✅ **Phase 2完了**
    - **FORMATTER**: テキスト整形（大文字化・小文字化・全角変換・半角変換）
-   - **EXTRACT_TEXT**: PDFファイルからテキスト抽出
-   - **GENERATIVE_AI**: OpenAI API連携（プロンプト・モデル・パラメータ設定）
+   - **EXTRACT_TEXT**: PDFファイルからテキスト抽出（spatie/pdf-to-text使用）
+   - **GENERATIVE_AI**: OpenRouter API連携（プロンプト・モデル・パラメータ設定）
 
 4. **フロントエンド**
    - ワークフロー一覧表示
@@ -196,7 +196,7 @@ php artisan db:seed
 - **Redis 7** - キャッシュ・キュー
 - **Docker** - コンテナ化
 - **spatie/pdf-to-text** - PDFテキスト抽出
-- **openai-php/client** - OpenAI API連携
+- **OpenRouter API** - AI処理（OpenAI互換）
 - **tecnickcom/tcpdf** - 日本語対応PDF生成
 
 ### フロントエンド
@@ -210,7 +210,7 @@ php artisan db:seed
 ### ドメイン層（Domain Layer）
 - **Entities**: ビジネスロジックの中心となるエンティティ
 - **Repositories**: データアクセスの抽象化インターフェース
-- **Services**: ノード処理のビジネスロジック
+- **Services**: ノード処理サービス（FormatterNodeProcessor、ExtractTextNodeProcessor、GenerativeAiNodeProcessor）
 
 ### ユースケース層（Usecase Layer）
 - **DTOs**: データ転送オブジェクト
@@ -219,32 +219,79 @@ php artisan db:seed
 ### インフラストラクチャ層（Infrastructure Layer）
 - **Models**: Eloquentモデル
 - **Repositories**: リポジトリの実装
+- **External Services**: 外部API連携
 
 ### プレゼンテーション層（Presentation Layer）
 - **Controllers**: HTTPリクエストの処理
+- **API Routes**: RESTful APIエンドポイント
 
-## 📝 開発メモ
+## 🎯 ノード処理システム詳細
 
-### 重要な実装ポイント
-- ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
-- ワークフロー実行は非同期処理で実装予定
-- ファイルアップロードは適切なバリデーションを実装
-- エラーハンドリングを各層で適切に実装
-- 入力・出力機能により、ユーザーは柔軟にデータ形式を選択可能
+### FORMATTER ノード
+- **機能**: テキストの整形処理
+- **設定項目**: 
+  - `format_type`: `uppercase`（大文字化）、`lowercase`（小文字化）、`fullwidth`（全角変換）、`halfwidth`（半角変換）
+- **実装**: `FormatterNodeProcessor`クラス
 
-### 進捗状況
-- ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
-- ✅ **Phase 2**: 3つのノードタイプ実装完了
-- ✅ **Phase 3**: 入力・出力機能実装完了
-- ⏳ **Phase 4**: 非同期処理実装
-- ⏳ **Phase 5**: ドキュメント
+### EXTRACT_TEXT ノード
+- **機能**: PDFファイルからテキスト抽出
+- **設定項目**: 
+  - `file_path`: PDFファイルパス（自動設定）
+- **実装**: `ExtractTextNodeProcessor`クラス（spatie/pdf-to-text使用）
 
-## 🚀 今後の予定
+### GENERATIVE_AI ノード
+- **機能**: AIによるテキスト処理
+- **設定項目**:
+  - `prompt`: AIへの指示文
+  - `model`: 使用するAIモデル（デフォルト: `google/gemma-3n-e2b-it:free`）
+  - `max_tokens`: 最大トークン数（デフォルト: 1000）
+  - `temperature`: 創造性パラメータ（デフォルト: 0.7）
+- **実装**: `GenerativeAiNodeProcessor`クラス（OpenRouter API使用）
 
-1. **非同期処理** - Laravel Queueを使用した非同期実行
-2. **テスト実装** - ユニットテスト・統合テスト
-3. **ドキュメント** - API仕様書の作成
-4. **パフォーマンス最適化** - キャッシュ・最適化
-5. **セキュリティ強化** - 認証・認可機能
-6. **UI/UX改善** - より直感的なインターフェース
+## 🔄 進捗状況
+
+### ✅ 完了済み（Phase 1 & 2）
+1. **基本アーキテクチャ構築**
+   - Docker環境構築
+   - Laravel 11 + Next.js 13+ セットアップ
+   - オニオンアーキテクチャ実装
+
+2. **データベース設計・実装**
+   - Workflow・Nodeモデル設計
+   - マイグレーション・シーダー実装
+   - リレーション設定
+
+3. **基本API実装**
+   - ワークフローCRUD操作
+   - ノード追加機能
+   - ファイルアップロード機能
+
+4. **フロントエンド実装**
+   - ワークフロー管理画面
+   - ノード設定フォーム
+   - 実行結果表示
+
+5. **ノード処理システム実装**
+   - 3つのノードタイプ完全実装
+   - ファクトリーパターンによる動的処理
+   - エラーハンドリング
+
+### ⏳ 実装予定（Phase 3以降）
+1. **非同期処理実装**
+   - Laravel Queue設定
+   - ワークフロー実行の非同期化
+   - 実行状況監視
+
+2. **テスト実装**
+   - ユニットテスト
+   - 統合テスト
+   - E2Eテスト
+
+3. **ドキュメント完成**
+   - API仕様書
+   - 開発者ガイド
+
+## 🚀 次のステップ
+
+現在、Phase 2（3つのノードタイプ実装）が完了しました。次のPhase 3では非同期処理の実装を行い、より実用的なワークフロー実行システムを構築します。
 
