@@ -1,21 +1,42 @@
-# Workflow App - 開発者ガイド
+# Workflow App - プロジェクトガイド
 
-## 概要
+---
 
-このドキュメントは、Workflow Appの開発者向けガイドです。開発環境のセットアップ、アーキテクチャ、開発フローについて説明します。
+## 📖 概要
 
-## 🏗️ アーキテクチャ概要
+Workflow Appは、ノードベースのワークフローエンジンです。ユーザーは複数のノードを組み合わせて、テキスト処理やAI処理を行うワークフローを作成・実行できます。
+
+### 主な特徴
+
+- **ノードベース処理**: FORMATTER、EXTRACT_TEXT、GENERATIVE_AIの3種類のノード
+- **非同期実行**: Laravel Queue + Redisによる高性能な非同期処理
+- **ファイル対応**: PDFファイルのアップロード・テキスト抽出
+- **AI連携**: OpenRouter APIを使用したAI処理
+- **モダンアーキテクチャ**: オニオンアーキテクチャによる保守性の高い設計
+
+---
+
+## 🏗️ アーキテクチャ
 
 ### 技術スタック
 
-- **バックエンド**: Laravel 11 (PHP 8.2)
-- **フロントエンド**: Next.js 13 (TypeScript)
+- **バックエンド**: Laravel 11 (PHP 8.2) + オニオンアーキテクチャ
+- **フロントエンド**: Next.js 13+ (App Router) + TypeScript
 - **データベース**: SQLite（開発環境）
 - **キャッシュ/キュー**: Redis 7
 - **コンテナ化**: Docker Compose
-- **アーキテクチャ**: オニオンアーキテクチャ（クリーンアーキテクチャ）
+- **テスト**: PHPUnit
 
-### プロジェクト構造
+### アーキテクチャ原則
+
+- **オニオンアーキテクチャ**: 依存関係の方向を制御
+- **ドメイン駆動設計**: ビジネスロジックの明確化
+- **依存性注入**: テスタビリティの向上
+- **レイヤー分離**: 責務の明確化
+
+---
+
+## 📁 プロジェクト構成
 
 ```
 workflow-app/
@@ -50,6 +71,70 @@ workflow-app/
 ├── Makefile                   # 開発用コマンド
 └── README.md                  # プロジェクト概要
 ```
+
+---
+
+## ✅ 実装済み機能
+
+### 1. 基本CRUD操作
+- ✅ ワークフロー作成・取得・更新・削除
+- ✅ ノード追加・削除
+- ✅ ワークフロー実行（非同期処理）
+
+### 2. 入力・出力機能
+- ✅ **入力種別選択**: テキストまたはPDFファイル
+- ✅ **出力種別選択**: テキスト表示またはPDFダウンロード
+- ✅ **テキスト入力**: textareaで直接入力
+- ✅ **PDFファイルアップロード**: ファイル選択でPDFをアップロード
+- ✅ **テキスト出力**: モーダルで表示、コピー機能付き
+- ✅ **PDF出力**: TCPDFライブラリで日本語対応PDF生成・ダウンロード
+
+### 3. ノード処理システム
+- ✅ **FORMATTER**: テキスト整形（大文字化・小文字化・全角変換・半角変換）
+- ✅ **EXTRACT_TEXT**: PDFファイルからテキスト抽出（spatie/pdf-to-text使用）
+- ✅ **GENERATIVE_AI**: OpenRouter API連携（プロンプト・モデル・パラメータ設定）
+
+### 4. 非同期処理システム
+- ✅ **Laravel Queue**: Redisを使用した非同期ジョブ処理
+- ✅ **RunWorkflowJob**: ワークフロー実行用ジョブ
+- ✅ **実行状況監視**: フロントエンドでの実行状況ポーリング
+- ✅ **エラーハンドリング**: ジョブ失敗時の適切な処理
+- ✅ **ローディング状態**: 実行中のUI表示
+
+### 5. フロントエンド
+- ✅ ワークフロー一覧表示
+- ✅ ワークフロー作成・編集フォーム（入力・出力設定含む）
+- ✅ 編集・削除機能
+- ✅ ノード追加・削除機能
+- ✅ 実行ボタン（非同期処理対応）
+- ✅ 実行結果表示（テキスト・PDF）
+
+### 6. アーキテクチャ
+- ✅ オニオンアーキテクチャ実装
+- ✅ ドメイン駆動設計
+- ✅ 依存性注入
+- ✅ クリーンアーキテクチャ
+
+### 7. ファイルアップロード
+- ✅ PDFファイルアップロード機能
+- ✅ ファイルバリデーション
+- ✅ 安全なファイル保存
+
+### 8. テスト環境
+- ✅ PHPUnit設定
+- ✅ ユニットテスト（FormatterNodeProcessorTest、GenerativeAiNodeProcessorTest等）
+- ✅ Featureテスト（WorkflowTest、FileUploadTest、AsyncWorkflowTest）
+- ✅ 統合テスト
+- ✅ Queueシステムテスト
+
+### 9. ドキュメント
+- ✅ README.md（プロジェクト概要）
+- ✅ API.md（API仕様書）
+- ✅ OpenAPI仕様書（openapi.yaml）
+- ✅ SwaggerUI（swagger-ui.html）
+- ✅ Makefile（開発用コマンド集）
+
+---
 
 ## 🚀 開発環境セットアップ
 
@@ -89,6 +174,8 @@ make status
 # ログ確認
 make logs
 ```
+
+---
 
 ## 🛠️ 開発用コマンド
 
@@ -131,6 +218,8 @@ make frontend-shell  # フロントエンドコンテナ
 # 開発モード
 make dev             # 開発モードで起動
 ```
+
+---
 
 ## 🏗️ アーキテクチャ詳細
 
@@ -270,15 +359,40 @@ class WorkflowController extends Controller
 }
 ```
 
-### ノード処理システム
+### 非同期処理層（Queue Layer）
 
-#### ノードタイプ
+- **Jobs**: 非同期ジョブクラス
+- **Queue Workers**: ジョブ処理ワーカー
+- **Redis**: ジョブキュー管理
 
-1. **FORMATTER** - テキスト整形
-2. **EXTRACT_TEXT** - PDFテキスト抽出
-3. **GENERATIVE_AI** - AI処理
+---
 
-#### ファクトリーパターン
+## 🎯 ノード処理システム
+
+### ノードタイプ
+
+#### 1. FORMATTER ノード
+- **機能**: テキストの整形処理
+- **設定項目**: 
+  - `format_type`: `uppercase`（大文字化）、`lowercase`（小文字化）、`fullwidth`（全角変換）、`halfwidth`（半角変換）
+- **実装**: `FormatterNodeProcessor`クラス
+
+#### 2. EXTRACT_TEXT ノード
+- **機能**: PDFファイルからテキスト抽出
+- **設定項目**: 
+  - `file_path`: PDFファイルパス（自動設定）
+- **実装**: `ExtractTextNodeProcessor`クラス（spatie/pdf-to-text使用）
+
+#### 3. GENERATIVE_AI ノード
+- **機能**: AIによるテキスト処理
+- **設定項目**:
+  - `prompt`: AIへの指示文
+  - `model`: 使用するAIモデル（デフォルト: `google/gemma-3n-e2b-it:free`）
+  - `max_tokens`: 最大トークン数（デフォルト: 1000）
+  - `temperature`: 創造性パラメータ（デフォルト: 0.7）
+- **実装**: `GenerativeAiNodeProcessor`クラス（OpenRouter API使用）
+
+### ファクトリーパターン
 
 ```php
 // app/Domain/Services/NodeProcessorFactory.php
@@ -295,6 +409,47 @@ class NodeProcessorFactory
     }
 }
 ```
+
+---
+
+## 🔄 非同期処理システム
+
+### アーキテクチャ
+- **Laravel Queue**: Redisドライバーを使用した非同期処理
+- **RunWorkflowJob**: ワークフロー実行専用ジョブクラス
+- **セッション管理**: 実行結果の一時保存と取得
+- **エラーハンドリング**: ジョブ失敗時の適切な処理
+
+### フロントエンド対応
+- **実行状況監視**: 定期的なポーリングによる実行状況確認
+- **ローディング状態**: 実行中のUI表示とボタン無効化
+- **エラー表示**: 実行失敗時の適切なエラーメッセージ表示
+
+### 技術実装
+- **Redis Queue**: 高速なジョブ処理
+- **セッションストレージ**: 実行結果の一時保存
+- **ポーリング機能**: 1秒間隔での実行状況確認
+- **タイムアウト設定**: 5分の実行タイムアウト
+
+### 入力・出力機能詳細
+
+#### 入力機能
+- **テキスト入力**: ワークフロー作成・編集時にtextareaでテキストを直接入力
+- **PDFファイル入力**: ファイル選択でPDFをアップロード、自動的にファイルパスが保存される
+- **入力データの管理**: ワークフローの初期入力データとして最初のノードに渡される
+
+#### 出力機能
+- **テキスト出力**: 実行結果をモーダルで表示、クリップボードにコピー可能
+- **PDF出力**: TCPDFライブラリを使用して日本語対応のPDFを生成・ダウンロード
+- **出力形式の選択**: ワークフロー作成時に出力種別（テキスト/PDF）を選択可能
+
+#### 技術実装
+- **TCPDFライブラリ**: 日本語フォント対応のPDF生成
+- **Base64エンコーディング**: PDFバイナリデータの安全な転送
+- **ファイルアップロード**: 適切なバリデーションとセキュリティ対策
+- **フロントエンド**: 直感的なUIで入力・出力種別を選択
+
+---
 
 ## 🧪 テスト
 
@@ -351,145 +506,25 @@ class WorkflowTest extends TestCase
 }
 ```
 
-## 🔄 開発フロー
-
-### 1. 機能開発
+### Queueシステムのテスト
 
 ```bash
-# 1. 開発環境起動
-make start
-
-# 2. 新しいブランチ作成
-git checkout -b feature/new-feature
-
-# 3. 開発・テスト
-make test
-
-# 4. コミット
-git add .
-git commit -m "feat: add new feature"
-
-# 5. プルリクエスト作成
-git push origin feature/new-feature
-```
-
-### 2. デバッグ
-
-```bash
-# ログ確認
-make logs
-
 # バックエンドコンテナに入る
 make backend-shell
 
-# キャッシュクリア
-make cache-clear
+# テストジョブを実行
+php artisan test:queue
 
-# データベースリセット
-make db-reset
-```
-
-### 3. パフォーマンス確認
-
-```bash
-# アプリケーション状態確認
-make status
-
-# ログ監視
+# Queueワーカーのログを確認
 make logs
-
-# テスト実行時間確認
-make test-all
 ```
 
-## 📚 主要なファイル
+### 非同期処理の動作確認
 
-### バックエンド
+1. フロントエンドでワークフローを作成
+2. ノードを追加
+3. 実行ボタンをクリック
+4. 「実行中...」の表示を確認
+5. 実行完了後に結果を確認
 
-- `app/Domain/Entities/Workflow.php` - ワークフローエンティティ
-- `app/Domain/Entities/Node.php` - ノードエンティティ
-- `app/Domain/Services/NodeProcessorFactory.php` - ノード処理ファクトリー
-- `app/Usecase/WorkflowUsecase.php` - ワークフロー関連ユースケース
-- `app/Http/Controllers/WorkflowController.php` - ワークフローコントローラー
-- `app/Jobs/RunWorkflowJob.php` - ワークフロー実行ジョブ
-
-### フロントエンド
-
-- `src/components/workflow/WorkflowList.tsx` - ワークフロー一覧
-- `src/components/workflow/WorkflowForm.tsx` - ワークフロー作成・編集
-- `src/components/node/NodeForm.tsx` - ノード設定
-- `src/hooks/useWorkflows.ts` - ワークフロー関連フック
-- `src/lib/api.ts` - API通信ラッパー
-
-## 🔧 設定ファイル
-
-### 環境変数
-
-**バックエンド（backend/.env）:**
-```env
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=sqlite
-DB_DATABASE=/var/www/html/database/database.sqlite
-
-CACHE_DRIVER=redis
-QUEUE_CONNECTION=redis
-
-REDIS_HOST=redis
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-
-OPENROUTER_API_KEY=your-api-key-here
-```
-
-**フロントエンド（frontend/.env.local）:**
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-```
-
-### Docker設定
-
-**docker-compose.yml:**
-```yaml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:80"
-    volumes:
-      - ./backend:/var/www/html
-    depends_on:
-      - redis
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-```
-
-## 🚀 デプロイメント
-
-### 開発環境
-
-```bash
-# 開発環境起動
-make dev
-
-# テスト実行
-make test
-
-# アプリケーション確認
-make status
-```
+---

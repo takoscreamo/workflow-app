@@ -57,10 +57,8 @@ make init
 
 ## 📚 詳細ドキュメント
 
-- **[PROJECT_DETAILS.md](PROJECT_DETAILS.md)** - プロジェクトの詳細な実装情報、アーキテクチャ、進捗状況
-- **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - 開発環境セットアップ、アーキテクチャ、開発フロー
+- **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - プロジェクトの包括的なガイド（アーキテクチャ、開発環境、API仕様、進捗状況）
 - **[API.md](API.md)** - バックエンドAPIの詳細仕様
-- **[TASK.md](TASK.md)** - 実装タスクと進捗状況
 
 ## ⚠️ 注意事項
 
