@@ -26,7 +26,7 @@ class FormatterNodeProcessor implements NodeProcessorInterface
      */
     private function convertToFullwidth(string $text): string
     {
-        return mb_convert_kana($text, 'R');
+        return mb_convert_kana($text, 'AK');
     }
 
     /**
@@ -34,6 +34,6 @@ class FormatterNodeProcessor implements NodeProcessorInterface
      */
     private function convertToHalfwidth(string $text): string
     {
-        return mb_convert_kana($text, 'r');
+        return mb_convert_kana($text, 'ak');
     }
 }
