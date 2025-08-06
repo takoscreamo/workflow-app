@@ -68,7 +68,9 @@ export default function Home() {
         output_type: newWorkflowOutputType,
         input_data: inputData
       });
-      setWorkflows([...workflows, workflow]);
+
+      // ワークフロー一覧を再読み込みして最新のデータを取得
+      await loadWorkflows();
       setNewWorkflowName('');
       setNewWorkflowInputType('text');
       setNewWorkflowOutputType('text');
@@ -114,7 +116,9 @@ export default function Home() {
         output_type: editingOutputType,
         input_data: inputData
       });
-      setWorkflows(workflows.map(w => w.id === id ? updatedWorkflow : w));
+      
+      // ワークフロー一覧を再読み込みして最新のデータを取得
+      await loadWorkflows();
       setEditingWorkflow(null);
       setEditingName('');
       setEditingInputType('text');
