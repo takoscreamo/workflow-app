@@ -26,4 +26,19 @@ class Node
             updatedAt: new \DateTime()
         );
     }
+
+    /**
+     * フロントエンド用の配列形式に変換
+     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'workflow_id' => $this->workflowId,
+            'node_type' => $this->nodeType->value,
+            'config' => $this->config,
+            'created_at' => $this->createdAt->format('Y-m-d\TH:i:s.v\Z'),
+            'updated_at' => $this->updatedAt->format('Y-m-d\TH:i:s.v\Z')
+        ];
+    }
 }

@@ -44,7 +44,7 @@ class WorkflowController extends Controller
         $dto = CreateWorkflowDTO::fromRequest($request->all());
         $workflow = $this->workflowUsecase->createWorkflow($dto);
 
-        return response()->json($workflow, 201);
+        return response()->json($workflow->toArray(), 201);
     }
 
     /**
@@ -57,7 +57,7 @@ class WorkflowController extends Controller
             return response()->json(['message' => 'ワークフローが見つかりません'], 404);
         }
 
-        return response()->json($workflow);
+        return response()->json($workflow->toArray());
     }
 
     /**
@@ -81,7 +81,7 @@ class WorkflowController extends Controller
             $dto = AddNodeDTO::fromRequest((int) $id, $request->all());
             $node = $this->workflowUsecase->addNode($dto);
 
-            return response()->json($node, 201);
+            return response()->json($node->toArray(), 201);
         } catch (\App\Domain\Entities\WorkflowDomainException $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -201,7 +201,7 @@ class WorkflowController extends Controller
             'workflow_input_data' => $workflow->inputData
         ]);
 
-        return response()->json($workflow);
+        return response()->json($workflow->toArray());
     }
 
     /**

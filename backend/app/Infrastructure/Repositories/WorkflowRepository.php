@@ -11,7 +11,7 @@ class WorkflowRepository implements WorkflowRepositoryInterface
     public function findAll(): array
     {
         $models = WorkflowModel::with('nodes')->get();
-        return $models->map(fn($model) => $this->toEntity($model))->toArray();
+        return $models->map(fn($model) => $this->toEntity($model)->toArray())->toArray();
     }
 
     public function findById(int $id): ?Workflow
