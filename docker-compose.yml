@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Laravel Backend (Apache + PHP)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: workflow-backend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./backend/storage:/var/www/html/storage
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=workflow_app
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - workflow-network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: workflow-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - workflow-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: workflow-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=workflow_app
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=workflow_user
+      - MYSQL_PASSWORD=password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - workflow-network
+
+  # Redis for Queue
+  redis:
+    image: redis:7-alpine
+    container_name: workflow-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - workflow-network
+
+volumes:
+  mysql_data:
+
+networks:
+  workflow-network:
+    driver: bridge 
