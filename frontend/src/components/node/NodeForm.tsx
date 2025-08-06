@@ -32,7 +32,7 @@ export function NodeForm({ workflowId, onSuccess, onCancel, onError }: NodeFormP
       case NodeType.GENERATIVE_AI:
         return { 
           prompt: '以下のテキストを要約してください：', 
-          model: 'gpt-3.5-turbo',
+          model: 'google/gemma-3n-e2b-it:free',
           max_tokens: 1000,
           temperature: 0.7,
           description: 'AIでテキストを処理'
@@ -81,8 +81,10 @@ export function NodeForm({ workflowId, onSuccess, onCancel, onError }: NodeFormP
   ];
 
   const modelOptions = [
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-    { value: 'gpt-4', label: 'GPT-4' }
+    { value: 'google/gemma-3n-e2b-it:free', label: 'Google Gemma 3N E2B (無料)' },
+    { value: 'deepseek/deepseek-r1-0528-qwen3-8b:free', label: 'DeepSeek R1 Qwen3 8B (無料)' },
+    { value: 'microsoft/mai-ds-r1:free', label: 'Microsoft MAI DS R1 (無料)' },
+    { value: 'nvidia/llama-3.1-nemotron-ultra-253b-v1:free', label: 'NVIDIA Llama 3.1 Nemotron Ultra (無料)' }
   ];
 
   return (
@@ -125,7 +127,7 @@ export function NodeForm({ workflowId, onSuccess, onCancel, onError }: NodeFormP
             />
             <SelectField
               label="モデル"
-              value={nodeConfig.model as string || 'gpt-3.5-turbo'}
+              value={nodeConfig.model as string || 'google/gemma-3n-e2b-it:free'}
               onChange={(value) => setNodeConfig({ ...nodeConfig, model: value })}
               options={modelOptions}
             />

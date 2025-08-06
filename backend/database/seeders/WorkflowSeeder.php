@@ -34,7 +34,7 @@ class WorkflowSeeder extends Seeder
             'node_type' => NodeType::GENERATIVE_AI->value,
             'config' => [
                 'prompt' => '以下のテキストを要約してください：',
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'google/gemma-3n-e2b-it:free',
                 'max_tokens' => 1000,
             ],
         ]);
