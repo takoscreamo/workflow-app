@@ -3,12 +3,12 @@
 ## 🎯 必須要件（最優先で実装）
 
 ### 1. データストアによるデータ永続化
-- [ ] `Workflow`モデルとマイグレーション作成
+- [x] `Workflow`モデルとマイグレーション作成
   - `id`, `name` フィールド
-- [ ] `Node`モデルとマイグレーション作成
+- [x] `Node`モデルとマイグレーション作成
   - `id`, `workflow_id`, `node_type`, `config`（JSON）フィールド
-- [ ] データベースリレーション設定（Workflow hasMany Node）
-- [ ] 初期データのシーダー作成
+- [x] データベースリレーション設定（Workflow hasMany Node）
+- [x] 初期データのシーダー作成
 
 ### 2. 非同期処理によるWorkflow実行
 - [ ] `RunWorkflowJob`作成（Laravel Queue使用）
@@ -43,52 +43,69 @@
 ## 🔧 基本APIエンドポイント実装
 
 ### 1. ワークフロー管理API
-- [ ] `WorkflowController`作成
-- [ ] `POST /api/workflows` - ワークフロー作成
-- [ ] `GET /api/workflows/{id}` - ワークフロー取得
-- [ ] `POST /api/workflows/{id}/nodes` - ノード追加
-- [ ] `POST /api/workflows/{id}/run` - ワークフロー実行（非同期）
+- [x] `WorkflowController`作成
+- [x] `POST /api/workflows` - ワークフロー作成
+- [x] `GET /api/workflows/{id}` - ワークフロー取得
+- [x] `PUT /api/workflows/{id}` - ワークフロー更新
+- [x] `DELETE /api/workflows/{id}` - ワークフロー削除
+- [x] `POST /api/workflows/{id}/nodes` - ノード追加
+- [x] `POST /api/workflows/{id}/run` - ワークフロー実行（同期的な実装）
 
 ### 2. ファイルアップロードAPI
 - [ ] `FileController`作成
 - [ ] `POST /api/files/upload` - PDFファイルアップロード
 
 ### 3. リクエスト・レスポンスクラス
-- [ ] `CreateWorkflowRequest`作成
-- [ ] `CreateWorkflowResponse`作成
-- [ ] `AddNodeRequest`作成
-- [ ] `WorkflowDetailResponse`作成
+- [x] `CreateWorkflowDTO`作成
+- [x] `UpdateWorkflowDTO`作成
+- [x] `AddNodeDTO`作成
+- [x] `WorkflowDetailResponse`作成
+
+## 🏗️ アーキテクチャ実装
+
+### 1. オニオンアーキテクチャ
+- [x] Domain層（エンティティ、リポジトリインターフェース）
+- [x] Usecase層（DTOs、ユースケース）
+- [x] Infrastructure層（Eloquentモデル、リポジトリ実装）
+- [x] Presentation層（コントローラー）
+- [x] 依存性注入の設定
+
+### 2. ドメイン駆動設計
+- [x] `Workflow`エンティティ作成
+- [x] `Node`エンティティ作成
+- [x] `NodeType`列挙型作成
+- [x] リポジトリパターン実装
 
 ## 🎨 フロントエンド実装（Next.js）
 
 ### 1. 基本構造
-- [ ] API通信ラッパー作成（`lib/api.ts`）
-- [ ] 型定義作成（`types/`）
+- [x] API通信ラッパー作成（`lib/api.ts`）
+- [x] 型定義作成（`types/`）
   - `Workflow`, `Node`, `NodeType`インターフェース
   - リクエスト・レスポンス型定義
 
 ### 2. ページ実装
-- [ ] ワークフロー作成画面（名前入力）
+- [x] ワークフロー一覧画面（作成・編集・削除・実行）
 - [ ] ワークフロー詳細画面（ノード追加・一覧）
 - [ ] ノード設定画面（各ノードタイプ用）
 - [ ] 実行結果表示画面
 
 ### 3. コンポーネント実装
-- [ ] ワークフロー作成フォーム
+- [x] ワークフロー作成フォーム
 - [ ] ノード追加コンポーネント
 - [ ] ノード設定フォーム
   - `generative_ai`用（プロンプト、モデル設定）
   - `formatter`用（フォーマットルール設定）
 - [ ] ファイルアップロードコンポーネント
-- [ ] 実行ボタン・ステータス表示
+- [x] 実行ボタン・ステータス表示
 
 ## 🔗 API連携・統合
 
 ### 1. フロントエンドとバックエンド連携
-- [ ] API通信ラッパー実装
-- [ ] エラーハンドリング
-- [ ] ローディング状態管理
-- [ ] CORS設定最終調整
+- [x] API通信ラッパー実装
+- [x] エラーハンドリング
+- [x] ローディング状態管理
+- [x] CORS設定最終調整
 
 ### 2. 非同期処理のフロントエンド対応
 - [ ] ワークフロー実行状況の監視
@@ -113,9 +130,10 @@
 ## 📚 ドキュメント
 
 ### 1. README更新
-- [ ] セットアップ・起動方法
-- [ ] エンドポイント仕様
-- [ ] その他注意事項
+- [x] セットアップ・起動方法
+- [x] エンドポイント仕様
+- [x] アーキテクチャ説明
+- [x] 実装状況の反映
 
 ### 2. API仕様書
 - [ ] エンドポイント詳細ドキュメント
@@ -142,28 +160,44 @@
 - ✅ Docker環境構築完了
 - ✅ Laravel 11 + Next.js 13+ セットアップ完了
 - ✅ 基本的なアプリケーション起動確認完了
-- 🔄 次のステップ: データベース設計・マイグレーション実装
+- ✅ オニオンアーキテクチャ実装完了
+- ✅ データベース設計・マイグレーション実装完了
+- ✅ 基本APIエンドポイント実装完了
+- ✅ フロントエンド基本画面実装完了
+- 🔄 **Phase 2**: 3つのノードタイプ実装（進行中）
 
 ### 実装優先順位
-1. **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
-2. **Phase 2**: データストア永続化、基本API、フロントエンド実装、テスト実装
-3. **Phase 3**: 3つのノードタイプ実装
-4. **Phase 4**: 非同期処理実装
-5. **Phase 5**: ドキュメント
+1. ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
+2. 🔄 **Phase 2**: 3つのノードタイプ実装（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
+3. ⏳ **Phase 3**: 非同期処理実装
+4. ⏳ **Phase 4**: テスト実装
+5. ⏳ **Phase 5**: ドキュメント完成
 
 ---
 
 ## 📝 実装メモ
 
 ### 技術スタック
-- **バックエンド**: Laravel 11, PHP 8.2, MySQL 8.0, Redis 7
+- **バックエンド**: Laravel 11, PHP 8.2, SQLite（開発環境）, Redis 7
 - **フロントエンド**: Next.js 13+, TypeScript, Tailwind CSS
-- **非同期処理**: Laravel Queue + Redis
-- **PDF処理**: spatie/pdf-to-text
-- **LLM API**: OpenAI API
+- **アーキテクチャ**: オニオンアーキテクチャ（クリーンアーキテクチャ）
+- **非同期処理**: Laravel Queue + Redis（予定）
+- **PDF処理**: spatie/pdf-to-text（予定）
+- **LLM API**: OpenAI API（予定）
 
 ### 重要な実装ポイント
-- ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
-- ワークフロー実行は必ず非同期処理で実装
-- ファイルアップロードは適切なバリデーションを実装
-- エラーハンドリングを各層で適切に実装 
+- ✅ ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
+- [ ] ワークフロー実行は必ず非同期処理で実装
+- [ ] ファイルアップロードは適切なバリデーションを実装
+- ✅ エラーハンドリングを各層で適切に実装
+
+### アーキテクチャ詳細
+- **Domain層**: ビジネスロジックの中心、外部依存なし
+- **Usecase層**: アプリケーションのユースケース、DTOs
+- **Infrastructure層**: 外部依存（DB、API等）の実装
+- **Presentation層**: HTTPリクエストの処理
+
+### 次の実装予定
+1. **FORMATTER** - テキスト整形機能（最も簡単）
+2. **EXTRACT_TEXT** - PDFファイルアップロード・テキスト抽出
+3. **GENERATIVE_AI** - OpenAI API連携 

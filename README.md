@@ -5,9 +5,9 @@
 
 ## 🏗️ アーキテクチャ
 
-- **バックエンド**: Laravel 11 (PHP 8.2)
+- **バックエンド**: Laravel 11 (PHP 8.2) + オニオンアーキテクチャ
 - **フロントエンド**: Next.js 13+ (App Router)
-- **データベース**: MySQL 8.0
+- **データベース**: SQLite（開発環境）
 - **キャッシュ/キュー**: Redis 7
 - **コンテナ化**: Docker Compose
 
@@ -16,6 +16,19 @@
 ```
 workflow-app/
 ├── backend/          # Laravel 11 アプリケーション
+│   ├── app/
+│   │   ├── Domain/           # ドメイン層
+│   │   │   ├── Entities/     # エンティティ
+│   │   │   └── Repositories/ # リポジトリインターフェース
+│   │   ├── Usecase/          # ユースケース層
+│   │   │   ├── DTOs/         # データ転送オブジェクト
+│   │   │   └── WorkflowUsecase.php
+│   │   ├── Infrastructure/   # インフラストラクチャ層
+│   │   │   ├── Models/       # Eloquentモデル
+│   │   │   └── Repositories/ # リポジトリ実装
+│   │   └── Http/            # プレゼンテーション層
+│   │       └── Controllers/  # コントローラー
+│   └── database/
 ├── frontend/         # Next.js アプリケーション
 ├── docker-compose.yml
 └── README.md
@@ -52,7 +65,7 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### 4. データベースのマイグレーション
+### 4. データベースのマイグレーションとシーダー
 
 ```bash
 # バックエンドコンテナに入る
@@ -60,82 +73,119 @@ docker-compose exec backend bash
 
 # マイグレーションを実行
 php artisan migrate
+
+# シーダーを実行（サンプルデータ作成）
+php artisan db:seed
 ```
 
 ### 5. アプリケーションにアクセス
 
 - **フロントエンド**: http://localhost:3000
 - **バックエンドAPI**: http://localhost:8000
-- **データベース**: localhost:3306
+- **データベース**: SQLite（backend/database/database.sqlite）
 - **Redis**: localhost:6379
 
-## 📋 ノードタイプ
+## 📋 実装済み機能
 
-### 1. extract_text
-PDFファイルからテキストを抽出するノード
+### ✅ 完了済み
 
-### 2. generative_ai
-LLMを使用してテキスト生成を行うノード
-- 設定可能なプロンプトとモデル
-- OpenAI API対応
+1. **基本CRUD操作**
+   - ワークフロー作成・取得・更新・削除
+   - ノード追加
+   - ワークフロー実行（同期的な実装）
 
-### 3. formatter
-テキストの整形を行うノード
-- 大文字化・小文字化
-- 全角変換
-- その他の整形ルール
+2. **フロントエンド**
+   - ワークフロー一覧表示
+   - ワークフロー作成フォーム
+   - 編集・削除機能
+   - 実行ボタン
 
-## 🔧 開発
+3. **アーキテクチャ**
+   - オニオンアーキテクチャ実装
+   - ドメイン駆動設計
+   - 依存性注入
+   - クリーンアーキテクチャ
 
-### バックエンド開発
+### 🔄 実装予定
 
-```bash
-# Laravelコンテナに入る
-docker-compose exec backend bash
+1. **NodeType.EXTRACT_TEXT**
+   - PDFファイルアップロード機能
+   - `spatie/pdf-to-text`パッケージ使用
+   - PDFからテキスト抽出
 
-# アーティザンコマンドの実行
-php artisan make:controller WorkflowController
-php artisan make:model Workflow -m
-```
+2. **NodeType.GENERATIVE_AI**
+   - OpenAI API連携
+   - プロンプト設定機能
+   - モデル選択機能
 
-### フロントエンド開発
-
-```bash
-# Next.jsコンテナに入る
-docker-compose exec frontend bash
-
-# 依存関係のインストール
-npm install
-```
+3. **NodeType.FORMATTER**
+   - テキスト整形機能
+   - 大文字化・小文字化
+   - 全角変換
 
 ## 📚 API仕様
 
 | メソッド | エンドポイント                  | 概要                           |
 |----------|----------------------------------|--------------------------------|
+| GET      | `/api/workflows`                | ワークフロー一覧取得           |
 | POST     | `/api/workflows`                | ワークフロー作成               |
 | GET      | `/api/workflows/{id}`           | ワークフロー取得               |
+| PUT      | `/api/workflows/{id}`           | ワークフロー更新               |
+| DELETE   | `/api/workflows/{id}`           | ワークフロー削除               |
 | POST     | `/api/workflows/{id}/nodes`     | ノード追加                     |
-| POST     | `/api/workflows/{id}/run`       | ワークフロー非同期実行         |
-| POST     | `/api/files/upload`             | PDFファイルアップロード        |
+| POST     | `/api/workflows/{id}/run`       | ワークフロー実行               |
 
 ## 🛠️ 技術スタック
 
 ### バックエンド
-- Laravel 11
-- MySQL 8.0
-- Redis 7
-- spatie/pdf-to-text
-- Laravel Queue
+- **Laravel 11** - PHP 8.2
+- **オニオンアーキテクチャ** - クリーンアーキテクチャ
+- **SQLite** - 開発環境用データベース
+- **Redis 7** - キャッシュ・キュー
+- **Docker** - コンテナ化
 
 ### フロントエンド
-- Next.js 13+
-- TypeScript
-- Tailwind CSS
-- App Router
+- **Next.js 13+** - Reactフレームワーク
+- **TypeScript** - 型安全な開発
+- **Tailwind CSS** - スタイリング
+- **App Router** - 新しいルーティング
 
-## 📝 注意事項
+## 🏗️ アーキテクチャ詳細
 
-- 初回起動時はデータベースのマイグレーションが必要です
-- OpenAI APIを使用する場合は、`.env`ファイルにAPIキーを設定してください
-- ファイルアップロード機能を使用する場合は、適切なストレージ設定が必要です
+### ドメイン層（Domain Layer）
+- **Entities**: ビジネスロジックの中心となるエンティティ
+- **Repositories**: データアクセスの抽象化インターフェース
+
+### ユースケース層（Usecase Layer）
+- **DTOs**: データ転送オブジェクト
+- **WorkflowUsecase**: ワークフロー関連のビジネスロジック
+
+### インフラストラクチャ層（Infrastructure Layer）
+- **Models**: Eloquentモデル
+- **Repositories**: リポジトリの実装
+
+### プレゼンテーション層（Presentation Layer）
+- **Controllers**: HTTPリクエストの処理
+
+## 📝 開発メモ
+
+### 重要な実装ポイント
+- ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
+- ワークフロー実行は非同期処理で実装予定
+- ファイルアップロードは適切なバリデーションを実装予定
+- エラーハンドリングを各層で適切に実装
+
+### 進捗状況
+- ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
+- 🔄 **Phase 2**: 3つのノードタイプ実装（進行中）
+- ⏳ **Phase 3**: 非同期処理実装
+- ⏳ **Phase 4**: ドキュメント
+
+## 🚀 今後の予定
+
+1. **NodeType実装** - 3つのノードタイプの実装
+2. **非同期処理** - Laravel Queueを使用した非同期実行
+3. **ファイルアップロード** - PDFファイルのアップロード機能
+4. **テスト実装** - ユニットテスト・統合テスト
+5. **ドキュメント** - API仕様書の作成
 
