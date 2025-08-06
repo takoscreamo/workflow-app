@@ -4,11 +4,13 @@ namespace App\Domain\Services;
 
 class GenerativeAiNodeProcessor implements NodeProcessorInterface
 {
+    public function __construct(
+        private string $apiKey = ''
+    ) {}
+
     public function process(array $config, ?string $input = null): string
     {
-        $apiKey = config('services.openrouter.api_key');
-
-        if (!$apiKey) {
+        if (!$this->apiKey) {
             throw new \Exception('OpenRouter APIキーが設定されていません');
         }
 
@@ -21,7 +23,7 @@ class GenerativeAiNodeProcessor implements NodeProcessorInterface
         $fullPrompt = $input ? $prompt . "\n\n" . $input : $prompt;
 
         try {
-            $response = $this->callOpenRouterApi($apiKey, $model, $fullPrompt, $maxTokens, $temperature);
+            $response = $this->callOpenRouterApi($this->apiKey, $model, $fullPrompt, $maxTokens, $temperature);
             return $response ?: 'AIからの応答が空でした';
         } catch (\Exception $e) {
             throw new \Exception("OpenRouter API呼び出しに失敗しました: " . $e->getMessage());

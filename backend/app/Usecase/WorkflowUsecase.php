@@ -23,7 +23,7 @@ class WorkflowUsecase
         private PdfGeneratorService $pdfGeneratorService
     ) {}
 
-    public function getAllWorkflows(): Collection
+    public function getAllWorkflows(): array
     {
         return $this->workflowRepository->findAll();
     }
@@ -94,7 +94,7 @@ class WorkflowUsecase
         }
 
         $nodes = $this->nodeRepository->findByWorkflowId($id);
-        if ($nodes->isEmpty()) {
+        if (empty($nodes)) {
             throw new \Exception('ワークフローにノードがありません');
         }
 

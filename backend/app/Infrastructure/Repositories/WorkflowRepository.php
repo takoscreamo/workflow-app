@@ -5,13 +5,13 @@ namespace App\Infrastructure\Repositories;
 use App\Domain\Entities\Workflow;
 use App\Domain\Repositories\WorkflowRepositoryInterface;
 use App\Infrastructure\Models\WorkflowModel;
-use Illuminate\Database\Eloquent\Collection;
 
 class WorkflowRepository implements WorkflowRepositoryInterface
 {
-    public function findAll(): Collection
+    public function findAll(): array
     {
-        return WorkflowModel::with('nodes')->get();
+        $models = WorkflowModel::with('nodes')->get();
+        return $models->map(fn($model) => $this->toEntity($model))->toArray();
     }
 
     public function findById(int $id): ?Workflow
@@ -58,6 +58,11 @@ class WorkflowRepository implements WorkflowRepositoryInterface
 
     private function toEntity(WorkflowModel $model): Workflow
     {
+        $nodes = [];
+        if ($model->nodes && $model->nodes instanceof \Illuminate\Database\Eloquent\Collection) {
+            $nodes = $model->nodes->toArray();
+        }
+
         return new Workflow(
             id: $model->id,
             name: $model->name,
@@ -66,7 +71,7 @@ class WorkflowRepository implements WorkflowRepositoryInterface
             inputData: $model->input_data,
             createdAt: $model->created_at,
             updatedAt: $model->updated_at,
-            nodes: $model->nodes
+            nodes: $nodes
         );
     }
 }

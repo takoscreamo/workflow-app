@@ -3,7 +3,6 @@
 namespace App\Domain\Entities;
 
 use App\Domain\Entities\Node;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * ワークフローのドメインルール違反を表す例外
@@ -26,7 +25,7 @@ class Workflow
         public readonly ?string $inputData,
         public readonly \DateTime $createdAt,
         public readonly \DateTime $updatedAt,
-        public readonly Collection $nodes = new Collection()
+        public readonly array $nodes = []
     ) {}
 
     public static function create(string $name, string $inputType = 'text', string $outputType = 'text', ?string $inputData = null): self
@@ -42,7 +41,7 @@ class Workflow
         );
     }
 
-    public function withNodes(Collection $nodes): self
+    public function withNodes(array $nodes): self
     {
         return new self(
             id: $this->id,
@@ -92,7 +91,7 @@ class Workflow
     public function canAddNode(NodeType $nodeType): bool
     {
         // PDF入力で最初のノードの場合、EXTRACT_TEXTのみ許可
-        if ($this->inputType === 'pdf' && $this->nodes->isEmpty()) {
+        if ($this->inputType === 'pdf' && empty($this->nodes)) {
             return $nodeType === NodeType::EXTRACT_TEXT;
         }
 
@@ -111,7 +110,7 @@ class Workflow
     public function validateNodeAddition(NodeType $nodeType): void
     {
         if (!$this->canAddNode($nodeType)) {
-            if ($this->inputType === 'pdf' && $this->nodes->isEmpty()) {
+            if ($this->inputType === 'pdf' && empty($this->nodes)) {
                 throw new WorkflowDomainException('PDF入力の場合、最初のノードは「テキスト抽出」である必要があります');
             }
             if ($this->inputType === 'text' && $nodeType === NodeType::EXTRACT_TEXT) {

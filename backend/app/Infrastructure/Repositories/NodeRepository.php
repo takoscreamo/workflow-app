@@ -9,9 +9,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 class NodeRepository implements NodeRepositoryInterface
 {
-    public function findByWorkflowId(int $workflowId): Collection
+    public function findByWorkflowId(int $workflowId): array
     {
-        return NodeModel::where('workflow_id', $workflowId)->get();
+        $models = NodeModel::where('workflow_id', $workflowId)->get();
+        return $models->map(fn($model) => $this->toEntity($model))->toArray();
     }
 
     public function save(Node $node): Node
