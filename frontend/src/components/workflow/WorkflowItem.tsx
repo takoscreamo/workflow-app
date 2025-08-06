@@ -9,10 +9,11 @@ import { NodeForm } from '@/components/node/NodeForm';
 
 interface WorkflowItemProps {
   workflow: Workflow;
-  onEdit: (workflow: Workflow) => void;
+  onEdit: (workflow: Workflow, file: File | null) => void;
   onDelete: (id: number) => void;
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
+  onError?: (error: string) => void;
   isEditing: boolean;
   showAddNode: boolean;
 }
@@ -23,6 +24,7 @@ export function WorkflowItem({
   onDelete, 
   onRun, 
   onAddNode,
+  onError,
   isEditing,
   showAddNode
 }: WorkflowItemProps) {
@@ -50,7 +52,7 @@ export function WorkflowItem({
       input_type: editingInputType,
       output_type: editingOutputType,
       input_data: editingInputData
-    });
+    }, editingSelectedFile);
   };
 
   const handleCancel = () => {
@@ -142,7 +144,7 @@ export function WorkflowItem({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => onEdit(workflow)}
+              onClick={() => onEdit(workflow, null)}
             >
               編集
             </Button>
@@ -173,7 +175,12 @@ export function WorkflowItem({
       
       {showAddNode && (
         <div className="mt-4">
-          <NodeForm workflowId={workflow.id} />
+          <NodeForm 
+            workflowId={workflow.id} 
+            onSuccess={() => onAddNode(workflow.id)}
+            onCancel={() => onAddNode(workflow.id)}
+            onError={onError}
+          />
         </div>
       )}
     </div>

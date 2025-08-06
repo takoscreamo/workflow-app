@@ -98,12 +98,18 @@ export const api = {
 
   // PDFファイルをダウンロード
   async downloadPdf(content: string, filename: string): Promise<void> {
+    console.log('Starting PDF download...');
+    console.log('Content length:', content.length);
+    console.log('Filename:', filename);
+    
     // Base64デコード
     const binaryString = atob(content);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
+    
+    console.log('Binary data length:', bytes.length);
     
     const blob = new Blob([bytes], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
@@ -114,5 +120,7 @@ export const api = {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+    
+    console.log('PDF download completed');
   },
 }; 

@@ -91,15 +91,24 @@ export function useWorkflowActions() {
       setError(null);
       const result = await api.runWorkflow(id);
       
+      console.log('Workflow execution result:', result);
+      console.log('Output type:', result.output_type);
+      console.log('Final result length:', result.final_result?.length);
+      
       if (result.output_type === 'pdf' && result.final_result) {
+        console.log('Downloading PDF...');
         await api.downloadPdf(result.final_result, `workflow_result_${id}.pdf`);
+        console.log('PDF download completed');
         return { type: 'pdf', result: result.final_result };
       } else if (result.final_result) {
+        console.log('Showing text result in modal');
         return { type: 'text', result: result.final_result };
       } else {
+        console.log('No result available');
         return { type: 'text', result: '結果がありません' };
       }
     } catch (err) {
+      console.error('Workflow execution error:', err);
       const errorMessage = err instanceof Error ? err.message : 'ワークフローの実行に失敗しました';
       setError(errorMessage);
       throw new Error(errorMessage);

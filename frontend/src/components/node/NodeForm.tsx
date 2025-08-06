@@ -9,9 +9,10 @@ interface NodeFormProps {
   workflowId: number;
   onSuccess?: () => void;
   onCancel?: () => void;
+  onError?: (error: string) => void;
 }
 
-export function NodeForm({ workflowId, onSuccess, onCancel }: NodeFormProps) {
+export function NodeForm({ workflowId, onSuccess, onCancel, onError }: NodeFormProps) {
   const [nodeType, setNodeType] = useState<NodeType>('' as NodeType);
   const [nodeConfig, setNodeConfig] = useState<Record<string, unknown>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +49,10 @@ export function NodeForm({ workflowId, onSuccess, onCancel }: NodeFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!nodeType) return;
+    if (!nodeType) {
+      onError?.('ノードタイプを選択してください');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -62,6 +66,8 @@ export function NodeForm({ workflowId, onSuccess, onCancel }: NodeFormProps) {
       onSuccess?.();
     } catch (error) {
       console.error('ノード追加エラー:', error);
+      const errorMessage = error instanceof Error ? error.message : 'ノードの追加に失敗しました';
+      onError?.(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

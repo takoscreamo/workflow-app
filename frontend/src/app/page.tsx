@@ -8,13 +8,20 @@ import { ErrorMessage, LoadingSpinner } from '@/components/common';
 import { WorkflowForm, WorkflowList, ExecutionResultModal } from '@/components/workflow';
 
 export default function Home() {
-  const { workflows, loading, error, loadWorkflows, setError } = useWorkflows();
-  const { createWorkflow, updateWorkflow, deleteWorkflow, runWorkflow } = useWorkflowActions();
+  const { workflows, loading, error: workflowsError, loadWorkflows, setError: setWorkflowsError } = useWorkflows();
+  const { createWorkflow, updateWorkflow, deleteWorkflow, runWorkflow, error: actionsError, setError: setActionsError } = useWorkflowActions();
   
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [showAddNode, setShowAddNode] = useState<number | null>(null);
   const [executionResult, setExecutionResult] = useState<string | null>(null);
   const [showExecutionResult, setShowExecutionResult] = useState(false);
+
+  // エラー状態を統合
+  const error = workflowsError || actionsError;
+  const setError = (message: string | null) => {
+    setWorkflowsError(message);
+    setActionsError(message);
+  };
 
   const handleCreateWorkflow = async (data: { name: string; input_type: 'text' | 'pdf'; output_type: 'text' | 'pdf'; input_data: string }, file: File | null) => {
     try {
@@ -25,14 +32,14 @@ export default function Home() {
     }
   };
 
-  const handleUpdateWorkflow = async (workflow: Workflow) => {
+  const handleUpdateWorkflow = async (workflow: Workflow, file: File | null) => {
     try {
       await updateWorkflow(workflow.id, {
         name: workflow.name,
         input_type: workflow.input_type,
         output_type: workflow.output_type,
         input_data: workflow.input_data || ''
-      }, null);
+      }, file);
       await loadWorkflows();
       setEditingWorkflow(null);
     } catch (error) {
@@ -67,8 +74,12 @@ export default function Home() {
     setShowAddNode(showAddNode === workflowId ? null : workflowId);
   };
 
-  const handleEditWorkflow = (workflow: Workflow) => {
+  const handleEditWorkflow = (workflow: Workflow, file: File | null = null) => {
     setEditingWorkflow(editingWorkflow === workflow.id ? null : workflow.id);
+  };
+
+  const handleError = (errorMessage: string) => {
+    setError(errorMessage);
   };
 
   if (loading) {
@@ -98,6 +109,7 @@ export default function Home() {
           onDelete={handleDeleteWorkflow}
           onRun={handleRunWorkflow}
           onAddNode={handleAddNode}
+          onError={handleError}
           editingWorkflow={editingWorkflow}
           showAddNode={showAddNode}
         />
