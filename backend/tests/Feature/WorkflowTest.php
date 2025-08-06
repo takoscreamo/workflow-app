@@ -13,7 +13,7 @@ class WorkflowTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
-    public function test_can_create_workflow()
+    public function test_ワークフローを作成できる()
     {
         $workflowData = [
             'name' => 'テストワークフロー',
@@ -39,7 +39,7 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_can_get_workflow()
+    public function test_ワークフローを取得できる()
     {
         $workflow = WorkflowModel::factory()->create([
             'name' => 'テストワークフロー'
@@ -54,7 +54,7 @@ class WorkflowTest extends TestCase
                 ]);
     }
 
-    public function test_can_update_workflow()
+    public function test_ワークフローを更新できる()
     {
         $workflow = WorkflowModel::factory()->create([
             'name' => '元のワークフロー名'
@@ -79,7 +79,7 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_can_delete_workflow()
+    public function test_ワークフローを削除できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -92,7 +92,7 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_can_add_node_to_workflow()
+    public function test_ワークフローにノードを追加できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -122,7 +122,7 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_can_add_generative_ai_node()
+    public function test_生成AIノードを追加できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -146,7 +146,7 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_can_add_extract_text_node()
+    public function test_テキスト抽出ノードを追加できる()
     {
         $workflow = WorkflowModel::factory()->create([
             'input_type' => 'pdf'
@@ -169,14 +169,14 @@ class WorkflowTest extends TestCase
         ]);
     }
 
-    public function test_returns_404_for_nonexistent_workflow()
+    public function test_存在しないワークフローに対して404を返す()
     {
         $response = $this->getJson('/api/workflows/999');
 
         $response->assertStatus(404);
     }
 
-    public function test_validation_errors_for_invalid_workflow_data()
+    public function test_無効なワークフローデータでバリデーションエラーを返す()
     {
         $response = $this->postJson('/api/workflows', []);
 
@@ -184,7 +184,7 @@ class WorkflowTest extends TestCase
                 ->assertJsonValidationErrors(['name']);
     }
 
-    public function test_validation_errors_for_invalid_node_data()
+    public function test_無効なノードデータでバリデーションエラーを返す()
     {
         $workflow = WorkflowModel::factory()->create();
 

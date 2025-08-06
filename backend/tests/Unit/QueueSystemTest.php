@@ -5,28 +5,25 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use App\Jobs\TestJob;
 use App\Jobs\RunWorkflowJob;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Cache;
 
 class QueueSystemTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
         Queue::fake();
     }
 
-    public function test_can_dispatch_test_job()
+    public function test_テストジョブをディスパッチできる()
     {
         TestJob::dispatch('test message');
 
         Queue::assertPushed(TestJob::class);
     }
 
-    public function test_can_dispatch_run_workflow_job()
+    public function test_ワークフロー実行ジョブをディスパッチできる()
     {
         $workflowId = 1;
         RunWorkflowJob::dispatch($workflowId);
@@ -40,7 +37,7 @@ class QueueSystemTest extends TestCase
         });
     }
 
-    public function test_job_has_correct_retry_settings()
+    public function test_ジョブが正しいリトライ設定を持つ()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -49,7 +46,7 @@ class QueueSystemTest extends TestCase
         $this->assertEquals(300, $job->timeout);
     }
 
-    public function test_job_has_correct_queue_settings()
+    public function test_ジョブが正しいキュー設定を持つ()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -58,7 +55,7 @@ class QueueSystemTest extends TestCase
         $this->assertTrue($job->queue === null || $job->queue === 'default');
     }
 
-    public function test_can_chain_jobs()
+    public function test_ジョブをチェーンできる()
     {
         $workflowId = 1;
 
@@ -67,7 +64,7 @@ class QueueSystemTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class);
     }
 
-    public function test_job_failure_handling()
+    public function test_ジョブ失敗処理()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -76,7 +73,7 @@ class QueueSystemTest extends TestCase
         $this->assertTrue(method_exists($job, 'failed'));
     }
 
-    public function test_cache_integration()
+    public function test_キャッシュ統合()
     {
         $sessionId = 'test-session-' . uniqid();
         $data = [
@@ -91,7 +88,7 @@ class QueueSystemTest extends TestCase
         $this->assertEquals($data, Cache::get("workflow_execution_{$sessionId}"));
     }
 
-    public function test_cache_expiration()
+    public function test_キャッシュ期限切れ()
     {
         $sessionId = 'test-session-' . uniqid();
         $data = ['status' => 'running'];
@@ -106,7 +103,7 @@ class QueueSystemTest extends TestCase
         $this->assertFalse(Cache::has("workflow_execution_{$sessionId}"));
     }
 
-    public function test_multiple_jobs_in_queue()
+    public function test_キュー内の複数ジョブ()
     {
         $workflowIds = [1, 2, 3];
 
@@ -117,7 +114,7 @@ class QueueSystemTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class, 3);
     }
 
-    public function test_job_with_delay()
+    public function test_遅延付きジョブ()
     {
         $workflowId = 1;
 
@@ -128,7 +125,7 @@ class QueueSystemTest extends TestCase
         });
     }
 
-    public function test_job_priority()
+    public function test_ジョブ優先度()
     {
         $workflowId = 1;
 
@@ -139,7 +136,7 @@ class QueueSystemTest extends TestCase
         });
     }
 
-    public function test_session_id_generation()
+    public function test_セッションID生成()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -158,7 +155,7 @@ class QueueSystemTest extends TestCase
         }
     }
 
-    public function test_job_timeout_handling()
+    public function test_ジョブタイムアウト処理()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -167,7 +164,7 @@ class QueueSystemTest extends TestCase
         $this->assertEquals(300, $job->timeout);
     }
 
-    public function test_job_retry_handling()
+    public function test_ジョブリトライ処理()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);
@@ -176,7 +173,7 @@ class QueueSystemTest extends TestCase
         $this->assertEquals(3, $job->tries);
     }
 
-    public function test_cache_key_format()
+    public function test_キャッシュキーフォーマット()
     {
         $sessionId = 'test-session-123';
         $cacheKey = "workflow_execution_{$sessionId}";
@@ -184,7 +181,7 @@ class QueueSystemTest extends TestCase
         $this->assertEquals('workflow_execution_test-session-123', $cacheKey);
     }
 
-    public function test_job_serialization()
+    public function test_ジョブシリアライゼーション()
     {
         $workflowId = 1;
         $job = new RunWorkflowJob($workflowId);

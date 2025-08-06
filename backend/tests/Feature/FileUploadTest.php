@@ -17,7 +17,7 @@ class FileUploadTest extends TestCase
         Storage::fake('public');
     }
 
-    public function test_can_upload_pdf_file()
+    public function test_PDFファイルをアップロードできる()
     {
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
 
@@ -45,7 +45,7 @@ class FileUploadTest extends TestCase
         Storage::disk('public')->assertExists($filePath);
     }
 
-    public function test_can_upload_large_pdf_file()
+    public function test_大きなPDFファイルをアップロードできる()
     {
         $file = UploadedFile::fake()->create('large_document.pdf', 2048, 'application/pdf');
 
@@ -60,7 +60,7 @@ class FileUploadTest extends TestCase
         Storage::disk('public')->assertExists($filePath);
     }
 
-    public function test_rejects_non_pdf_files()
+    public function test_PDF以外のファイルを拒否する()
     {
         $file = UploadedFile::fake()->create('document.txt', 100, 'text/plain');
 
@@ -74,7 +74,7 @@ class FileUploadTest extends TestCase
         Storage::disk('public')->assertMissing('uploads/' . $file->hashName());
     }
 
-    public function test_rejects_files_without_extension()
+    public function test_拡張子がないファイルを拒否する()
     {
         $file = UploadedFile::fake()->create('document', 100, 'application/pdf');
 
@@ -86,7 +86,7 @@ class FileUploadTest extends TestCase
                 ->assertJsonValidationErrors(['file']);
     }
 
-    public function test_rejects_files_with_invalid_extension()
+    public function test_無効な拡張子のファイルを拒否する()
     {
         $file = UploadedFile::fake()->create('document.pdf.txt', 100, 'application/pdf');
 
@@ -98,7 +98,7 @@ class FileUploadTest extends TestCase
                 ->assertJsonValidationErrors(['file']);
     }
 
-    public function test_rejects_files_exceeding_size_limit()
+    public function test_サイズ制限を超えるファイルを拒否する()
     {
         $file = UploadedFile::fake()->create('large_document.pdf', 10240 * 1024, 'application/pdf');
 
@@ -110,7 +110,7 @@ class FileUploadTest extends TestCase
                 ->assertJsonValidationErrors(['file']);
     }
 
-    public function test_rejects_request_without_file()
+    public function test_ファイルなしのリクエストを拒否する()
     {
         $response = $this->postJson('/api/files/upload', []);
 
@@ -118,7 +118,7 @@ class FileUploadTest extends TestCase
                 ->assertJsonValidationErrors(['file']);
     }
 
-    public function test_rejects_multiple_files()
+    public function test_複数ファイルを拒否する()
     {
         $file1 = UploadedFile::fake()->create('document1.pdf', 100, 'application/pdf');
         $file2 = UploadedFile::fake()->create('document2.pdf', 100, 'application/pdf');
@@ -131,7 +131,7 @@ class FileUploadTest extends TestCase
                 ->assertJsonValidationErrors(['file']);
     }
 
-    public function test_handles_malicious_filename()
+    public function test_悪意のあるファイル名を処理する()
     {
         $file = UploadedFile::fake()->create('../../../malicious.pdf', 100, 'application/pdf');
 
@@ -147,7 +147,7 @@ class FileUploadTest extends TestCase
         ]);
     }
 
-    public function test_uploads_file_with_japanese_filename()
+    public function test_日本語ファイル名でファイルをアップロードできる()
     {
         $file = UploadedFile::fake()->create('日本語ファイル.pdf', 100, 'application/pdf');
 
@@ -162,7 +162,7 @@ class FileUploadTest extends TestCase
         ]);
     }
 
-    public function test_uploads_file_with_spaces_in_filename()
+    public function test_スペースを含むファイル名でファイルをアップロードできる()
     {
         $file = UploadedFile::fake()->create('my document.pdf', 100, 'application/pdf');
 

@@ -22,7 +22,7 @@ class AsyncWorkflowTest extends TestCase
         Queue::fake();
     }
 
-    public function test_can_start_workflow_execution()
+    public function test_ワークフロー実行を開始できる()
     {
         $workflow = WorkflowModel::factory()->create([
             'name' => 'テストワークフロー'
@@ -49,7 +49,7 @@ class AsyncWorkflowTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class);
     }
 
-    public function test_can_get_execution_status()
+    public function test_実行状況を取得できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -83,14 +83,14 @@ class AsyncWorkflowTest extends TestCase
                 ]);
     }
 
-    public function test_returns_404_for_nonexistent_session()
+    public function test_存在しないセッションに対して404を返す()
     {
         $response = $this->getJson('/api/workflows/execution/nonexistent-session');
 
         $response->assertStatus(404);
     }
 
-    public function test_can_execute_workflow_with_formatter_node()
+    public function test_フォーマッターノードでワークフローを実行できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -116,7 +116,7 @@ class AsyncWorkflowTest extends TestCase
         });
     }
 
-    public function test_can_execute_workflow_with_generative_ai_node()
+    public function test_生成AIノードでワークフローを実行できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -137,7 +137,7 @@ class AsyncWorkflowTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class);
     }
 
-    public function test_can_execute_workflow_with_extract_text_node()
+    public function test_テキスト抽出ノードでワークフローを実行できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -156,7 +156,7 @@ class AsyncWorkflowTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class);
     }
 
-    public function test_can_execute_workflow_with_multiple_nodes()
+    public function test_複数のノードでワークフローを実行できる()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -192,7 +192,7 @@ class AsyncWorkflowTest extends TestCase
         Queue::assertPushed(RunWorkflowJob::class);
     }
 
-    public function test_returns_error_for_workflow_without_nodes()
+    public function test_ノードがないワークフローでエラーを返す()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -206,14 +206,14 @@ class AsyncWorkflowTest extends TestCase
         Queue::assertNotPushed(RunWorkflowJob::class);
     }
 
-    public function test_returns_error_for_nonexistent_workflow()
+    public function test_存在しないワークフローでエラーを返す()
     {
         $response = $this->postJson('/api/workflows/999/run');
 
         $response->assertStatus(404);
     }
 
-    public function test_execution_status_updates_progress()
+    public function test_実行状況が進捗を更新する()
     {
         $workflow = WorkflowModel::factory()->create();
 
@@ -251,7 +251,7 @@ class AsyncWorkflowTest extends TestCase
                      ]);
     }
 
-    public function test_handles_execution_timeout()
+    public function test_実行タイムアウトを処理する()
     {
         $workflow = WorkflowModel::factory()->create();
 

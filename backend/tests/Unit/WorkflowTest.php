@@ -14,7 +14,7 @@ use Tests\TestCase;
 class WorkflowTest extends TestCase
 {
     #[Test]
-    public function can_create_workflow_with_basic_parameters()
+    public function 基本的なパラメータでワークフローを作成できる()
     {
         $workflow = Workflow::create('Test Workflow');
 
@@ -29,7 +29,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_create_workflow_with_custom_parameters()
+    public function カスタムパラメータでワークフローを作成できる()
     {
         $workflow = Workflow::create(
             name: 'PDF Workflow',
@@ -45,7 +45,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_create_workflow_with_id_and_nodes()
+    public function IDとノードでワークフローを作成できる()
     {
         $nodes = [
             new Node(1, 1, NodeType::FORMATTER, ['format' => 'uppercase'], new \DateTime(), new \DateTime())
@@ -69,7 +69,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_add_nodes_to_workflow()
+    public function ワークフローにノードを追加できる()
     {
         $workflow = Workflow::create('Test Workflow');
         $nodes = [
@@ -85,7 +85,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_update_workflow_name()
+    public function ワークフロー名を更新できる()
     {
         $workflow = Workflow::create('Old Name');
         $originalUpdatedAt = $workflow->updatedAt;
@@ -104,7 +104,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_update_input_output_config()
+    public function 入出力設定を更新できる()
     {
         $workflow = Workflow::create('Test Workflow');
         $originalUpdatedAt = $workflow->updatedAt;
@@ -122,7 +122,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_update_input_output_config_without_input_data()
+    public function 入力データなしで入出力設定を更新できる()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text', 'old-data');
 
@@ -134,7 +134,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_add_formatter_node_to_text_workflow()
+    public function テキストワークフローにフォーマッターノードを追加できる()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text');
 
@@ -142,7 +142,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_add_generative_ai_node_to_text_workflow()
+    public function テキストワークフローに生成AIノードを追加できる()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text');
 
@@ -150,7 +150,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function cannot_add_extract_text_node_to_text_workflow()
+    public function テキストワークフローにテキスト抽出ノードを追加できない()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text');
 
@@ -158,7 +158,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_add_extract_text_node_to_pdf_workflow_as_first_node()
+    public function PDFワークフローの最初のノードとしてテキスト抽出ノードを追加できる()
     {
         $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
 
@@ -166,7 +166,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function can_add_other_nodes_to_pdf_workflow_after_first_node()
+    public function PDFワークフローの最初のノード後に他のノードを追加できる()
     {
         $nodes = [
             new Node(1, 1, NodeType::EXTRACT_TEXT, [], new \DateTime(), new \DateTime())
@@ -179,7 +179,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function validate_node_addition_throws_exception_for_text_workflow_with_extract_text()
+    public function テキストワークフローにテキスト抽出ノードを追加しようとすると例外が発生する()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text');
 
@@ -190,7 +190,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function validate_node_addition_throws_exception_for_pdf_workflow_without_extract_text_as_first()
+    public function PDFワークフローの最初のノードとしてテキスト抽出以外を追加しようとすると例外が発生する()
     {
         $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
 
@@ -201,7 +201,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function validate_node_addition_passes_for_valid_nodes()
+    public function 有効なノードの追加検証が通る()
     {
         $workflow = Workflow::create('Test Workflow', 'text', 'text');
 
@@ -213,7 +213,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function validate_node_addition_passes_for_pdf_workflow_with_extract_text_as_first()
+    public function PDFワークフローの最初のノードとしてテキスト抽出を追加する検証が通る()
     {
         $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
 
@@ -224,7 +224,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function to_array_returns_correct_structure()
+    public function toArrayが正しい構造を返す()
     {
         $createdAt = new \DateTime('2023-01-01 10:00:00');
         $updatedAt = new \DateTime('2023-01-02 11:00:00');
@@ -257,7 +257,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function to_array_handles_empty_nodes()
+    public function toArrayが空のノードを処理できる()
     {
         $workflow = Workflow::create('Test Workflow');
 
@@ -268,7 +268,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function to_array_handles_null_id()
+    public function toArrayがnullのIDを処理できる()
     {
         $workflow = Workflow::create('Test Workflow');
 
@@ -278,7 +278,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function to_array_handles_null_input_data()
+    public function toArrayがnullの入力データを処理できる()
     {
         $workflow = Workflow::create('Test Workflow');
 
@@ -288,7 +288,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function validate_node_addition_throws_generic_exception_for_other_cases()
+    public function ノード追加検証で他のケースで汎用例外が発生する()
     {
         // 実際には、この最後の例外ケースは現在のロジックでは発生しないが、
         // コードカバレッジのために、このテストケースを追加
@@ -308,7 +308,7 @@ class WorkflowTest extends TestCase
     }
 
     #[Test]
-    public function workflow_domain_exception_has_correct_message()
+    public function ワークフロードメイン例外が正しいメッセージを持つ()
     {
         $message = 'Test error message';
         $exception = new WorkflowDomainException($message);
