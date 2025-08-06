@@ -14,6 +14,7 @@ interface WorkflowItemProps {
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
   onShowResult: (id: number) => void;
+  onCancel?: () => void;
   onError?: (error: string) => void;
   isEditing: boolean;
   showAddNode: boolean;
@@ -28,6 +29,7 @@ export function WorkflowItem({
   onRun, 
   onAddNode,
   onShowResult,
+  onCancel,
   onError,
   isEditing,
   showAddNode,
@@ -69,6 +71,10 @@ export function WorkflowItem({
     setEditingOutputType(workflow.output_type);
     setEditingInputData(workflow.input_data || '');
     setEditingSelectedFile(null);
+    // 編集状態を終了
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   return (

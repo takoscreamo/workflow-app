@@ -99,6 +99,10 @@ export default function Home() {
     setEditingWorkflow(editingWorkflow === workflow.id ? null : workflow.id);
   };
 
+  const handleCancelEdit = () => {
+    setEditingWorkflow(null);
+  };
+
   const handleError = (errorMessage: string) => {
     setError(errorMessage);
   };
@@ -133,6 +137,7 @@ export default function Home() {
           onRun={handleRunWorkflow}
           onAddNode={handleAddNode}
           onShowResult={handleShowResult}
+          onCancel={handleCancelEdit}
           onError={handleError}
           editingWorkflow={editingWorkflow}
           showAddNode={showAddNode}

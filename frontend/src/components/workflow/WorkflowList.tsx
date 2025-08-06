@@ -8,6 +8,7 @@ interface WorkflowListProps {
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
   onShowResult: (id: number) => void;
+  onCancel?: () => void;
   onError?: (error: string) => void;
   editingWorkflow: number | null;
   showAddNode: number | null;
@@ -22,6 +23,7 @@ export function WorkflowList({
   onRun, 
   onAddNode,
   onShowResult,
+  onCancel,
   onError,
   editingWorkflow,
   showAddNode,
@@ -48,6 +50,7 @@ export function WorkflowList({
               onRun={onRun}
               onAddNode={onAddNode}
               onShowResult={onShowResult}
+              onCancel={onCancel}
               onError={onError}
               isEditing={editingWorkflow === workflow.id}
               showAddNode={showAddNode === workflow.id}
