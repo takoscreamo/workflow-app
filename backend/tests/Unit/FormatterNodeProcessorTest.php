@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Domain\Services\FormatterNodeProcessor;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class FormatterNodeProcessorTest extends TestCase
 {
@@ -15,9 +16,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->processor = new FormatterNodeProcessor();
     }
 
-                /**
-     * @test
-     */
+    #[Test]
     public function 全角文字を半角に変換できる()
     {
         $input = "１２３ＡＢＣｱｲｳ";
@@ -27,9 +26,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("123ABCｱｲｳ", $result);
     }
 
-                /**
-     * @test
-     */
+    #[Test]
     public function 半角文字を全角に変換できる()
     {
         $input = "123ABCアイウ";
@@ -39,9 +36,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("１２３ＡＢＣアイウ", $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 大文字に変換できる()
     {
         $input = "hello world";
@@ -51,9 +46,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("HELLO WORLD", $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 小文字に変換できる()
     {
         $input = "HELLO WORLD";
@@ -63,9 +56,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("hello world", $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function フォーマットタイプが指定されていない場合は元のテキストを返す()
     {
         $input = "test text";
@@ -75,9 +66,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("test text", $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 未知のフォーマットタイプの場合は元のテキストを返す()
     {
         $input = "test text";
@@ -87,9 +76,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->assertEquals("test text", $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 入力がnullの場合は例外を投げる()
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -99,9 +86,7 @@ class FormatterNodeProcessorTest extends TestCase
         $this->processor->process($config, null);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function mb_convert_kanaの各オプションをテスト()
     {
         $text = "１２３ＡＢＣｱｲｳ";

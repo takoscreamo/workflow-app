@@ -3,12 +3,11 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class MbConvertKanaTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function mb_convert_kanaの各オプションをテスト()
     {
         $text = "１２３ＡＢＣｱｲｳ";
@@ -57,9 +56,7 @@ class MbConvertKanaTest extends TestCase
         $this->assertTrue(true); // このテストは主に出力を確認するためのもの
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 全角数字を半角数字に変換するテスト()
     {
         $input = "１２３４５６７８９０";
@@ -69,9 +66,7 @@ class MbConvertKanaTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 全角アルファベットを半角アルファベットに変換するテスト()
     {
         $input = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ";
@@ -81,9 +76,7 @@ class MbConvertKanaTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function 全角英数字を半角英数字に変換するテスト()
     {
         $input = "１２３ＡＢＣ";

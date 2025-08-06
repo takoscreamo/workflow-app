@@ -113,6 +113,18 @@ class WorkflowController extends Controller
     public function runWorkflow(string $id): JsonResponse
     {
         try {
+            // ワークフローの存在確認
+            $workflow = $this->workflowUsecase->getWorkflowById((int) $id);
+            if (!$workflow) {
+                return response()->json(['message' => 'ワークフローが見つかりません'], 404);
+            }
+
+            // ノードの存在確認
+            $nodes = $this->workflowUsecase->getWorkflowNodes((int) $id);
+            if (empty($nodes)) {
+                return response()->json(['error' => 'ワークフローにノードが存在しません'], 400);
+            }
+
             // セッションIDを生成（実行状況の監視用）
             $sessionId = 'workflow_' . $id . '_' . Str::random(10);
 
@@ -215,6 +227,6 @@ class WorkflowController extends Controller
             return response()->json(['message' => 'ワークフローが見つかりません'], 404);
         }
 
-        return response()->json(['message' => 'ワークフローが削除されました']);
+        return response()->json(['message' => 'ワークフローが削除されました'], 204);
     }
 }

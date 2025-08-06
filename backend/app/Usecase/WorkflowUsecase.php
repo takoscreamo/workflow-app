@@ -86,6 +86,11 @@ class WorkflowUsecase
         return $this->nodeRepository->deleteById($nodeId);
     }
 
+    public function getWorkflowNodes(int $workflowId): array
+    {
+        return $this->nodeRepository->findByWorkflowId($workflowId);
+    }
+
     public function runWorkflow(int $id): array
     {
         $workflow = $this->workflowRepository->findById($id);

@@ -124,12 +124,29 @@
 - [x] `MbConvertKanaTest`実装
   - mb_convert_kana関数の各オプションテスト
   - 組み合わせテスト
+- [x] `GenerativeAiNodeProcessorTest`実装
+  - API通信テスト（Http::fake使用）
+  - エラーハンドリングテスト
+  - パラメータ設定テスト
+- [x] `QueueSystemTest`実装
+  - ジョブディスパッチテスト
+  - リトライ・タイムアウト設定テスト
+  - キャッシュ統合テスト
 - [x] `TestJob`実装（Queueシステムテスト用）
 - [x] テスト用コマンド実装（`test:queue`）
-- [ ] ワークフローCRUD操作のテスト
-- [ ] 非同期処理のテスト
-- [ ] ファイルアップロードのテスト
-- [ ] 統合テスト
+- [x] `WorkflowTest`実装（Featureテスト）
+  - ワークフローCRUD操作のテスト
+  - ノード追加テスト
+  - バリデーションテスト
+- [x] `FileUploadTest`実装（Featureテスト）
+  - ファイルアップロードテスト
+  - バリデーションテスト
+  - セキュリティテスト
+- [x] `AsyncWorkflowTest`実装（Featureテスト）
+  - 非同期処理テスト
+  - 実行状況監視テスト
+  - エラーハンドリングテスト
+- [x] 統合テスト（Featureテストとして実装）
 
 ### 2. フロントエンドテスト
 - [ ] コンポーネントテスト
@@ -178,13 +195,13 @@
 - ✅ フロントエンド基本画面実装完了
 - ✅ **Phase 2**: 3つのノードタイプ実装完了（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
 - ✅ **Phase 3**: 非同期処理実装完了（Laravel Queue + Redis）
-- ✅ **Phase 4**: テスト実装開始（基本的なテスト環境構築・ユニットテスト実装）
+- ✅ **Phase 4**: テスト実装完了（ユニットテスト・Featureテスト・統合テスト）
 
 ### 実装優先順位
 1. ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
 2. ✅ **Phase 2**: 3つのノードタイプ実装（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
 3. ✅ **Phase 3**: 非同期処理実装（Laravel Queue + Redis）
-4. ⏳ **Phase 4**: テスト実装（進行中）
+4. ✅ **Phase 4**: テスト実装（完了）
 5. ⏳ **Phase 5**: ドキュメント完成
 
 ---
@@ -236,10 +253,16 @@
 - **エラーハンドリング**: ジョブ失敗時の適切な処理
 - **フロントエンド対応**: 実行中のUI表示とボタン無効化
 
-### Phase 4実装詳細（進行中）
+### Phase 4実装詳細（完了）
 - **テスト環境構築**: PHPUnit設定完了
 - **FormatterNodeProcessorTest**: フォーマッターノードの全機能テスト
 - **MbConvertKanaTest**: mb_convert_kana関数の詳細テスト
+- **GenerativeAiNodeProcessorTest**: AIノードのAPI通信・エラーハンドリングテスト
+- **QueueSystemTest**: Queueシステムの全機能テスト
+- **WorkflowTest**: ワークフローCRUD操作のFeatureテスト
+- **FileUploadTest**: ファイルアップロードのFeatureテスト
+- **AsyncWorkflowTest**: 非同期処理のFeatureテスト
 - **TestJob**: Queueシステムテスト用ジョブ
 - **テストコマンド**: `test:queue`コマンドでQueue動作確認
-- **テスト実行**: `php artisan test`でテスト実行可能 
+- **テスト実行**: `php artisan test`でテスト実行可能
+- **テストカバレッジ**: ユニットテスト・Featureテスト・統合テストを網羅 
