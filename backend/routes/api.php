@@ -15,10 +15,6 @@ use App\Http\Controllers\WorkflowController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 // ワークフロー関連のAPIルート
 Route::prefix('workflows')->group(function () {
     Route::get('/', [WorkflowController::class, 'index']);
