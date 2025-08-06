@@ -2,9 +2,9 @@
 
 ## 概要
 
-このドキュメントでは、バックエンドAPIの詳細仕様を説明します。
-[OpenAPIドキュメント](backend/public/api/openapi.yaml) でも確認できます。
-SwaggerUIでも、アプリケーション起動後、http://localhost:8000/swagger で確認できます。
+- このドキュメントでは、バックエンドAPIの詳細仕様を説明します。
+- [OpenAPIドキュメント](backend/public/api/openapi.yaml) でも確認できます。
+- SwaggerUIでも、アプリケーション起動後、http://localhost:8000/swagger で確認できます。
 
 ## ベースURL
 
