@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Infrastructure\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Node extends Model
+class NodeModel extends Model
 {
+    protected $table = 'nodes';
+
     protected $fillable = [
         'workflow_id',
         'node_type',
@@ -15,13 +17,12 @@ class Node extends Model
 
     protected $casts = [
         'config' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /**
-     * ノードが属するワークフローを取得
-     */
     public function workflow(): BelongsTo
     {
-        return $this->belongsTo(Workflow::class);
+        return $this->belongsTo(WorkflowModel::class, 'workflow_id');
     }
 }

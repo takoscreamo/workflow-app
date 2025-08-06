@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Domain\Entities;
 
 enum NodeType: string
 {

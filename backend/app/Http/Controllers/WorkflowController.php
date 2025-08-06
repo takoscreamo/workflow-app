@@ -2,20 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Workflow;
-use App\Models\Node;
-use App\NodeType;
+use App\Usecase\DTOs\CreateWorkflowDTO;
+use App\Usecase\DTOs\UpdateWorkflowDTO;
+use App\Usecase\DTOs\AddNodeDTO;
+use App\Usecase\WorkflowUsecase;
+use App\Domain\Entities\NodeType;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class WorkflowController extends Controller
 {
+    public function __construct(
+        private WorkflowUsecase $workflowUsecase
+    ) {}
+
     /**
      * ワークフロー一覧を取得
      */
     public function index(): JsonResponse
     {
-        $workflows = Workflow::with('nodes')->get();
+        $workflows = $this->workflowUsecase->getAllWorkflows();
         return response()->json($workflows);
     }
 
@@ -28,12 +34,8 @@ class WorkflowController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $workflow = Workflow::create([
-            'name' => $request->name,
-        ]);
-
-        // ノードリレーションを読み込んで返す
-        $workflow->load('nodes');
+        $dto = CreateWorkflowDTO::fromRequest($request->all());
+        $workflow = $this->workflowUsecase->createWorkflow($dto);
 
         return response()->json($workflow, 201);
     }
@@ -43,7 +45,11 @@ class WorkflowController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $workflow = Workflow::with('nodes')->findOrFail($id);
+        $workflow = $this->workflowUsecase->getWorkflowById((int) $id);
+        if (!$workflow) {
+            return response()->json(['message' => 'ワークフローが見つかりません'], 404);
+        }
+
         return response()->json($workflow);
     }
 
@@ -57,13 +63,8 @@ class WorkflowController extends Controller
             'config' => 'required|array',
         ]);
 
-        $workflow = Workflow::findOrFail($id);
-
-        $node = Node::create([
-            'workflow_id' => $workflow->id,
-            'node_type' => $request->node_type,
-            'config' => $request->config,
-        ]);
+        $dto = AddNodeDTO::fromRequest((int) $id, $request->all());
+        $node = $this->workflowUsecase->addNode($dto);
 
         return response()->json($node, 201);
     }
@@ -73,16 +74,12 @@ class WorkflowController extends Controller
      */
     public function run(string $id): JsonResponse
     {
-        $workflow = Workflow::with('nodes')->findOrFail($id);
-
-        // TODO: 非同期処理を実装
-        // 現在は同期的に実行
-        $result = $this->executeWorkflow($workflow);
-
-        return response()->json([
-            'message' => 'ワークフローが実行されました',
-            'result' => $result,
-        ]);
+        try {
+            $result = $this->workflowUsecase->runWorkflow((int) $id);
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 
     /**
@@ -94,13 +91,12 @@ class WorkflowController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $workflow = Workflow::findOrFail($id);
-        $workflow->update([
-            'name' => $request->name,
-        ]);
+        $dto = UpdateWorkflowDTO::fromRequest((int) $id, $request->all());
+        $workflow = $this->workflowUsecase->updateWorkflow($dto);
 
-        // ノードリレーションを読み込んで返す
-        $workflow->load('nodes');
+        if (!$workflow) {
+            return response()->json(['message' => 'ワークフローが見つかりません'], 404);
+        }
 
         return response()->json($workflow);
     }
@@ -110,45 +106,12 @@ class WorkflowController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $workflow = Workflow::findOrFail($id);
-        $workflow->delete();
+        $success = $this->workflowUsecase->deleteWorkflow((int) $id);
 
-        return response()->json(['message' => 'ワークフローが削除されました']);
-    }
-
-    /**
-     * ワークフローを実行（同期的な実装）
-     */
-    private function executeWorkflow(Workflow $workflow): array
-    {
-        $result = [];
-        $input = '';
-
-        foreach ($workflow->nodes as $node) {
-            switch ($node->node_type) {
-                case NodeType::EXTRACT_TEXT->value:
-                    // TODO: PDFテキスト抽出処理
-                    $input = "PDFから抽出されたテキスト";
-                    break;
-
-                case NodeType::GENERATIVE_AI->value:
-                    // TODO: AI生成処理
-                    $input = "AIが生成したテキスト";
-                    break;
-
-                case NodeType::FORMATTER->value:
-                    // TODO: テキスト整形処理
-                    $input = strtoupper($input);
-                    break;
-            }
-
-            $result[] = [
-                'node_id' => $node->id,
-                'node_type' => $node->node_type,
-                'output' => $input,
-            ];
+        if (!$success) {
+            return response()->json(['message' => 'ワークフローが見つかりません'], 404);
         }
 
-        return $result;
+        return response()->json(['message' => 'ワークフローが削除されました']);
     }
 }
