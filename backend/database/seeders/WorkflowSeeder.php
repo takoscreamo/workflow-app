@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Workflow;
-use App\Models\Node;
-use App\NodeType;
+use App\Infrastructure\Models\WorkflowModel;
+use App\Infrastructure\Models\NodeModel;
+use App\Domain\Entities\NodeType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,12 +16,12 @@ class WorkflowSeeder extends Seeder
     public function run(): void
     {
         // サンプルワークフローを作成
-        $workflow = Workflow::create([
+        $workflow = WorkflowModel::create([
             'name' => 'サンプルワークフロー',
         ]);
 
         // サンプルノードを作成
-        Node::create([
+        NodeModel::create([
             'workflow_id' => $workflow->id,
             'node_type' => NodeType::EXTRACT_TEXT->value,
             'config' => [
@@ -29,7 +29,7 @@ class WorkflowSeeder extends Seeder
             ],
         ]);
 
-        Node::create([
+        NodeModel::create([
             'workflow_id' => $workflow->id,
             'node_type' => NodeType::GENERATIVE_AI->value,
             'config' => [
@@ -39,7 +39,7 @@ class WorkflowSeeder extends Seeder
             ],
         ]);
 
-        Node::create([
+        NodeModel::create([
             'workflow_id' => $workflow->id,
             'node_type' => NodeType::FORMATTER->value,
             'config' => [
