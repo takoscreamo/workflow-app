@@ -1,0 +1,51 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Workflow;
+use App\Models\Node;
+use App\NodeType;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class WorkflowSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // サンプルワークフローを作成
+        $workflow = Workflow::create([
+            'name' => 'サンプルワークフロー',
+        ]);
+
+        // サンプルノードを作成
+        Node::create([
+            'workflow_id' => $workflow->id,
+            'node_type' => NodeType::EXTRACT_TEXT->value,
+            'config' => [
+                'description' => 'PDFからテキストを抽出',
+            ],
+        ]);
+
+        Node::create([
+            'workflow_id' => $workflow->id,
+            'node_type' => NodeType::GENERATIVE_AI->value,
+            'config' => [
+                'prompt' => '以下のテキストを要約してください：',
+                'model' => 'gpt-3.5-turbo',
+                'max_tokens' => 1000,
+            ],
+        ]);
+
+        Node::create([
+            'workflow_id' => $workflow->id,
+            'node_type' => NodeType::FORMATTER->value,
+            'config' => [
+                'format_type' => 'uppercase',
+                'description' => 'テキストを大文字に変換',
+            ],
+        ]);
+    }
+}
