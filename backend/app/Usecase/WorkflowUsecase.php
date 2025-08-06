@@ -10,13 +10,15 @@ use App\Domain\Entities\Node;
 use App\Domain\Entities\NodeType;
 use App\Domain\Repositories\WorkflowRepositoryInterface;
 use App\Domain\Repositories\NodeRepositoryInterface;
+use App\Domain\Services\NodeProcessorFactory;
 use Illuminate\Database\Eloquent\Collection;
 
 class WorkflowUsecase
 {
     public function __construct(
         private WorkflowRepositoryInterface $workflowRepository,
-        private NodeRepositoryInterface $nodeRepository
+        private NodeRepositoryInterface $nodeRepository,
+        private NodeProcessorFactory $nodeProcessorFactory
     ) {}
 
     public function getAllWorkflows(): Collection
@@ -70,10 +72,59 @@ class WorkflowUsecase
             throw new \Exception('ワークフローが見つかりません');
         }
 
-        // TODO: 実際のワークフロー実行ロジックを実装
+        $nodes = $this->nodeRepository->findByWorkflowId($id);
+        if ($nodes->isEmpty()) {
+            throw new \Exception('ワークフローにノードがありません');
+        }
+
+        $results = [];
+        $currentInput = null;
+
+        foreach ($nodes as $nodeModel) {
+            try {
+                $node = $this->toNodeEntity($nodeModel);
+                $processor = $this->nodeProcessorFactory->create($node->nodeType);
+
+                $result = $processor->process($node->config, $currentInput);
+                $currentInput = $result;
+
+                $results[] = [
+                    'node_id' => $node->id,
+                    'node_type' => $node->nodeType->value,
+                    'config' => $node->config,
+                    'result' => $result,
+                    'status' => 'success'
+                ];
+            } catch (\Exception $e) {
+                $results[] = [
+                    'node_id' => $node->id ?? null,
+                    'node_type' => $node->nodeType->value ?? 'unknown',
+                    'config' => $node->config ?? [],
+                    'result' => null,
+                    'status' => 'error',
+                    'error' => $e->getMessage()
+                ];
+                break; // エラーが発生したら処理を停止
+            }
+        }
+
         return [
-            'message' => 'ワークフローが実行されました',
-            'result' => []
+            'workflow_id' => $id,
+            'workflow_name' => $workflow->name,
+            'results' => $results,
+            'final_result' => $currentInput
         ];
+    }
+
+    private function toNodeEntity($nodeModel): Node
+    {
+        return new Node(
+            id: $nodeModel->id,
+            workflowId: $nodeModel->workflow_id,
+            nodeType: NodeType::from($nodeModel->node_type),
+            config: $nodeModel->config,
+            createdAt: $nodeModel->created_at,
+            updatedAt: $nodeModel->updated_at
+        );
     }
 }

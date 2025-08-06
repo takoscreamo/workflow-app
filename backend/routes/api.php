@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkflowController;
+use App\Http\Controllers\FileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,4 +25,9 @@ Route::prefix('workflows')->group(function () {
     Route::delete('/{id}', [WorkflowController::class, 'destroy']);
     Route::post('/{id}/nodes', [WorkflowController::class, 'addNode']);
     Route::post('/{id}/run', [WorkflowController::class, 'run']);
+});
+
+// ファイルアップロード関連のAPIルート
+Route::prefix('files')->group(function () {
+    Route::post('/upload', [FileController::class, 'upload']);
 });

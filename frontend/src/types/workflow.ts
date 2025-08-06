@@ -31,10 +31,15 @@ export interface AddNodeRequest {
 }
 
 export interface WorkflowExecutionResult {
-  message: string;
-  result: Array<{
+  workflow_id: number;
+  workflow_name: string;
+  results: Array<{
     node_id: number;
     node_type: string;
-    output: string;
+    config: Record<string, unknown>;
+    result: string;
+    status: 'success' | 'error';
+    error?: string;
   }>;
+  final_result: string | null;
 } 

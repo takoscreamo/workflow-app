@@ -19,7 +19,8 @@ workflow-app/
 │   ├── app/
 │   │   ├── Domain/           # ドメイン層
 │   │   │   ├── Entities/     # エンティティ
-│   │   │   └── Repositories/ # リポジトリインターフェース
+│   │   │   ├── Repositories/ # リポジトリインターフェース
+│   │   │   └── Services/     # ノード処理サービス
 │   │   ├── Usecase/          # ユースケース層
 │   │   │   ├── DTOs/         # データ転送オブジェクト
 │   │   │   └── WorkflowUsecase.php
@@ -53,6 +54,9 @@ cd workflow-app
 ```bash
 # バックエンドの環境変数を設定
 cp backend/.env.example backend/.env
+
+# OpenAI APIキーを設定（オプション）
+echo "OPENAI_API_KEY=your-api-key-here" >> backend/.env
 ```
 
 ### 3. Docker Composeで起動
@@ -94,34 +98,40 @@ php artisan db:seed
    - ノード追加
    - ワークフロー実行（同期的な実装）
 
-2. **フロントエンド**
+2. **ノード処理システム**
+   - **FORMATTER**: テキスト整形（大文字化・小文字化・全角変換・半角変換）
+   - **EXTRACT_TEXT**: PDFファイルからテキスト抽出
+   - **GENERATIVE_AI**: OpenAI API連携（プロンプト・モデル・パラメータ設定）
+
+3. **フロントエンド**
    - ワークフロー一覧表示
    - ワークフロー作成フォーム
    - 編集・削除機能
+   - ノード追加機能
    - 実行ボタン
 
-3. **アーキテクチャ**
+4. **アーキテクチャ**
    - オニオンアーキテクチャ実装
    - ドメイン駆動設計
    - 依存性注入
    - クリーンアーキテクチャ
 
+5. **ファイルアップロード**
+   - PDFファイルアップロード機能
+   - ファイルバリデーション
+   - 安全なファイル保存
+
 ### 🔄 実装予定
 
-1. **NodeType.EXTRACT_TEXT**
-   - PDFファイルアップロード機能
-   - `spatie/pdf-to-text`パッケージ使用
-   - PDFからテキスト抽出
+1. **非同期処理**
+   - Laravel Queueを使用した非同期実行
+   - ワークフロー実行状況の監視
 
-2. **NodeType.GENERATIVE_AI**
-   - OpenAI API連携
-   - プロンプト設定機能
-   - モデル選択機能
+2. **テスト実装**
+   - ユニットテスト・統合テスト
 
-3. **NodeType.FORMATTER**
-   - テキスト整形機能
-   - 大文字化・小文字化
-   - 全角変換
+3. **ドキュメント**
+   - API仕様書の作成
 
 ## 📚 API仕様
 
@@ -134,6 +144,7 @@ php artisan db:seed
 | DELETE   | `/api/workflows/{id}`           | ワークフロー削除               |
 | POST     | `/api/workflows/{id}/nodes`     | ノード追加                     |
 | POST     | `/api/workflows/{id}/run`       | ワークフロー実行               |
+| POST     | `/api/files/upload`             | PDFファイルアップロード        |
 
 ## 🛠️ 技術スタック
 
@@ -143,6 +154,8 @@ php artisan db:seed
 - **SQLite** - 開発環境用データベース
 - **Redis 7** - キャッシュ・キュー
 - **Docker** - コンテナ化
+- **spatie/pdf-to-text** - PDFテキスト抽出
+- **openai-php/client** - OpenAI API連携
 
 ### フロントエンド
 - **Next.js 13+** - Reactフレームワーク
@@ -155,6 +168,7 @@ php artisan db:seed
 ### ドメイン層（Domain Layer）
 - **Entities**: ビジネスロジックの中心となるエンティティ
 - **Repositories**: データアクセスの抽象化インターフェース
+- **Services**: ノード処理のビジネスロジック
 
 ### ユースケース層（Usecase Layer）
 - **DTOs**: データ転送オブジェクト
@@ -172,20 +186,20 @@ php artisan db:seed
 ### 重要な実装ポイント
 - ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
 - ワークフロー実行は非同期処理で実装予定
-- ファイルアップロードは適切なバリデーションを実装予定
+- ファイルアップロードは適切なバリデーションを実装
 - エラーハンドリングを各層で適切に実装
 
 ### 進捗状況
 - ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
-- 🔄 **Phase 2**: 3つのノードタイプ実装（進行中）
+- ✅ **Phase 2**: 3つのノードタイプ実装完了
 - ⏳ **Phase 3**: 非同期処理実装
 - ⏳ **Phase 4**: ドキュメント
 
 ## 🚀 今後の予定
 
-1. **NodeType実装** - 3つのノードタイプの実装
-2. **非同期処理** - Laravel Queueを使用した非同期実行
-3. **ファイルアップロード** - PDFファイルのアップロード機能
-4. **テスト実装** - ユニットテスト・統合テスト
-5. **ドキュメント** - API仕様書の作成
+1. **非同期処理** - Laravel Queueを使用した非同期実行
+2. **テスト実装** - ユニットテスト・統合テスト
+3. **ドキュメント** - API仕様書の作成
+4. **パフォーマンス最適化** - キャッシュ・最適化
+5. **セキュリティ強化** - 認証・認可機能
 

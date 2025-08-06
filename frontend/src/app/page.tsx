@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Workflow } from '@/types/workflow';
+import { Workflow, NodeType } from '@/types/workflow';
 import { api } from '@/lib/api';
 
 export default function Home() {
@@ -11,6 +11,9 @@ export default function Home() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [showAddNode, setShowAddNode] = useState<number | null>(null);
+  const [nodeType, setNodeType] = useState<NodeType>(NodeType.FORMATTER);
+  const [nodeConfig, setNodeConfig] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     loadWorkflows();
@@ -78,10 +81,46 @@ export default function Home() {
   const runWorkflow = async (id: number) => {
     try {
       const result = await api.runWorkflow(id);
-      alert(`実行結果: ${result.message}`);
+      console.log('実行結果:', result);
+      alert(`実行完了！最終結果: ${result.final_result || 'なし'}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ワークフローの実行に失敗しました');
     }
+  };
+
+  const addNode = async (workflowId: number) => {
+    try {
+      await api.addNode(workflowId, { node_type: nodeType, config: nodeConfig });
+      await loadWorkflows(); // ワークフロー一覧を再読み込み
+      setShowAddNode(null);
+      setNodeConfig({});
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ノードの追加に失敗しました');
+    }
+  };
+
+  const getDefaultConfig = (type: NodeType): Record<string, unknown> => {
+    switch (type) {
+      case NodeType.FORMATTER:
+        return { format_type: 'uppercase', description: 'テキストを大文字に変換' };
+      case NodeType.EXTRACT_TEXT:
+        return { file_path: '', description: 'PDFからテキストを抽出' };
+      case NodeType.GENERATIVE_AI:
+        return { 
+          prompt: '以下のテキストを要約してください：', 
+          model: 'gpt-3.5-turbo',
+          max_tokens: 1000,
+          temperature: 0.7,
+          description: 'AIでテキストを処理'
+        };
+      default:
+        return {};
+    }
+  };
+
+  const handleNodeTypeChange = (type: NodeType) => {
+    setNodeType(type);
+    setNodeConfig(getDefaultConfig(type));
   };
 
   if (loading) {
@@ -176,6 +215,12 @@ export default function Home() {
                       {editingWorkflow !== workflow.id && (
                         <>
                           <button
+                            onClick={() => setShowAddNode(workflow.id)}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          >
+                            ノード追加
+                          </button>
+                          <button
                             onClick={() => startEditing(workflow)}
                             className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                           >
@@ -197,6 +242,98 @@ export default function Home() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* ノード追加フォーム */}
+                  {showAddNode === workflow.id && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">ノードを追加</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">ノードタイプ</label>
+                          <select
+                            value={nodeType}
+                            onChange={(e) => handleNodeTypeChange(e.target.value as NodeType)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value={NodeType.FORMATTER}>FORMATTER - テキスト整形</option>
+                            <option value={NodeType.EXTRACT_TEXT}>EXTRACT_TEXT - PDFテキスト抽出</option>
+                            <option value={NodeType.GENERATIVE_AI}>GENERATIVE_AI - AI処理</option>
+                          </select>
+                        </div>
+                        
+                        {nodeType === NodeType.FORMATTER && (
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">フォーマットタイプ</label>
+                            <select
+                              value={nodeConfig.format_type as string || 'uppercase'}
+                              onChange={(e) => setNodeConfig({ ...nodeConfig, format_type: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="uppercase">大文字に変換</option>
+                              <option value="lowercase">小文字に変換</option>
+                              <option value="fullwidth">全角に変換</option>
+                              <option value="halfwidth">半角に変換</option>
+                            </select>
+                          </div>
+                        )}
+
+                        {nodeType === NodeType.EXTRACT_TEXT && (
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">ファイルパス</label>
+                            <input
+                              type="text"
+                              value={nodeConfig.file_path as string || ''}
+                              onChange={(e) => setNodeConfig({ ...nodeConfig, file_path: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="uploads/filename.pdf"
+                            />
+                          </div>
+                        )}
+
+                        {nodeType === NodeType.GENERATIVE_AI && (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">プロンプト</label>
+                              <textarea
+                                value={nodeConfig.prompt as string || ''}
+                                onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                rows={3}
+                                placeholder="AIへの指示"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">モデル</label>
+                              <select
+                                value={nodeConfig.model as string || 'gpt-3.5-turbo'}
+                                onChange={(e) => setNodeConfig({ ...nodeConfig, model: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="gpt-4">GPT-4</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => addNode(workflow.id)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            追加
+                          </button>
+                          <button
+                            onClick={() => setShowAddNode(null)}
+                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                          >
+                            キャンセル
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {workflow.nodes && workflow.nodes.length > 0 && (
                     <div className="mt-3">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">ノード一覧:</h4>
