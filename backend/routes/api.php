@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkflowController;
 use App\Http\Controllers\FileController;
+use Illuminate\Http\JsonResponse;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,4 +33,14 @@ Route::prefix('workflows')->group(function () {
 // ファイルアップロード関連のAPIルート
 Route::prefix('files')->group(function () {
     Route::post('/upload', [FileController::class, 'upload']);
+});
+
+// ヘルスチェック用のAPIルート
+Route::get('/health', function (): JsonResponse {
+    return response()->json([
+        'success' => true,
+        'message' => 'API is running',
+        'timestamp' => now()->toISOString(),
+        'version' => '1.0.0'
+    ]);
 });

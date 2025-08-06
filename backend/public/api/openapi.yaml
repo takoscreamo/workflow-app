@@ -1,0 +1,944 @@
+openapi: 3.0.3
+info:
+  title: Workflow App API
+  description: |
+    ユーザーが自由に定義できるワークフロー（処理の流れ）を構築し、実行できるアプリケーションのAPI仕様書です。
+
+    ## 機能概要
+    - ワークフロー管理（作成・取得・更新・削除）
+    - ノード追加・削除・管理
+    - ワークフロー実行（非同期処理）
+    - ファイルアップロード（PDF）
+    - 実行状況監視
+
+    ## ノードタイプ
+    - **FORMATTER**: テキスト整形（大文字化・小文字化・全角変換・半角変換）
+    - **EXTRACT_TEXT**: PDFファイルからテキスト抽出
+    - **GENERATIVE_AI**: AI処理（OpenRouter API連携）
+
+    ## 非同期処理
+    ワークフロー実行は非同期処理で実装されており、実行開始後にセッションIDが返されます。
+    実行状況は定期的にポーリングして確認できます。
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/api
+    description: 開発環境（Docker）
+  - url: /api
+    description: 相対パス（SwaggerUI用）
+
+paths:
+  /health:
+    get:
+      summary: ヘルスチェック
+      description: APIの動作状況を確認します
+      tags:
+        - システム
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "API is running"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-01T00:00:00.000000Z"
+                  version:
+                    type: string
+                    example: "1.0.0"
+              example:
+                success: true
+                message: "API is running"
+                timestamp: "2024-01-01T00:00:00.000000Z"
+                version: "1.0.0"
+
+  /workflows:
+    get:
+      summary: ワークフロー一覧取得
+      description: 全てのワークフローとそのノード情報を取得します
+      tags:
+        - ワークフロー管理
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workflow'
+                  message:
+                    type: string
+                    example: "ワークフロー一覧を取得しました"
+              example:
+                success: true
+                data:
+                  - id: 1
+                    name: "サンプルワークフロー"
+                    input_type: "text"
+                    output_type: "text"
+                    input_data: "サンプルテキスト"
+                    created_at: "2024-01-01T00:00:00.000000Z"
+                    updated_at: "2024-01-01T00:00:00.000000Z"
+                    nodes:
+                      - id: 1
+                        workflow_id: 1
+                        node_type: "formatter"
+                        config:
+                          format_type: "uppercase"
+                        order: 1
+                        created_at: "2024-01-01T00:00:00.000000Z"
+                        updated_at: "2024-01-01T00:00:00.000000Z"
+                message: "ワークフロー一覧を取得しました"
+
+    post:
+      summary: ワークフロー作成
+      description: 新しいワークフローを作成します
+      tags:
+        - ワークフロー管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowRequest'
+            example:
+              name: "新しいワークフロー"
+              input_type: "text"
+              output_type: "text"
+              input_data: "入力テキスト"
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+              example:
+                id: 2
+                name: "新しいワークフロー"
+                input_type: "text"
+                output_type: "text"
+                input_data: "入力テキスト"
+                created_at: "2024-01-01T00:00:00.000000Z"
+                updated_at: "2024-01-01T00:00:00.000000Z"
+                nodes: []
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /workflows/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ワークフローID
+        schema:
+          type: integer
+        example: 1
+
+    get:
+      summary: ワークフロー取得
+      description: 指定されたIDのワークフローを取得します
+      tags:
+        - ワークフロー管理
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+              example:
+                id: 1
+                name: "サンプルワークフロー"
+                input_type: "text"
+                output_type: "text"
+                input_data: "サンプルテキスト"
+                created_at: "2024-01-01T00:00:00.000000Z"
+                updated_at: "2024-01-01T00:00:00.000000Z"
+                nodes:
+                  - id: 1
+                    workflow_id: 1
+                    node_type: "formatter"
+                    config:
+                      format_type: "uppercase"
+                    order: 1
+                    created_at: "2024-01-01T00:00:00.000000Z"
+                    updated_at: "2024-01-01T00:00:00.000000Z"
+        '404':
+          description: ワークフローが見つかりません
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ワークフローが見つかりません"
+
+    put:
+      summary: ワークフロー更新
+      description: 指定されたIDのワークフローを更新します
+      tags:
+        - ワークフロー管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkflowRequest'
+            example:
+              name: "更新されたワークフロー"
+              input_type: "pdf"
+              output_type: "pdf"
+              input_data: "/storage/uploads/document.pdf"
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+              example:
+                id: 1
+                name: "更新されたワークフロー"
+                input_type: "pdf"
+                output_type: "pdf"
+                input_data: "/storage/uploads/document.pdf"
+                created_at: "2024-01-01T00:00:00.000000Z"
+                updated_at: "2024-01-01T00:00:00.000000Z"
+                nodes: []
+        '404':
+          description: ワークフローが見つかりません
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: ワークフロー削除
+      description: 指定されたIDのワークフローを削除します
+      tags:
+        - ワークフロー管理
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ワークフローを削除しました"
+        '404':
+          description: ワークフローが見つかりません
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ワークフローが見つかりません"
+
+  /workflows/{id}/nodes:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ワークフローID
+        schema:
+          type: integer
+        example: 1
+
+    post:
+      summary: ノード追加
+      description: 指定されたワークフローにノードを追加します
+      tags:
+        - ノード管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddNodeRequest'
+            examples:
+              formatter:
+                summary: FORMATTERノード
+                value:
+                  node_type: "formatter"
+                  config:
+                    format_type: "uppercase"
+              extract_text:
+                summary: EXTRACT_TEXTノード
+                value:
+                  node_type: "extract_text"
+                  config:
+                    file_path: "/storage/uploads/document.pdf"
+              generative_ai:
+                summary: GENERATIVE_AIノード
+                value:
+                  node_type: "generative_ai"
+                  config:
+                    prompt: "このテキストを要約してください"
+                    model: "google/gemma-3n-e2b-it:free"
+                    max_tokens: 1000
+                    temperature: 0.7
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+              example:
+                id: 2
+                workflow_id: 1
+                node_type: "generative_ai"
+                config:
+                  prompt: "このテキストを要約してください"
+                  model: "google/gemma-3n-e2b-it:free"
+                  max_tokens: 1000
+                  temperature: 0.7
+                order: 2
+                created_at: "2024-01-01T00:00:00.000000Z"
+                updated_at: "2024-01-01T00:00:00.000000Z"
+        '400':
+          description: ドメインエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ワークフローが見つかりません"
+        '404':
+          description: ワークフローが見つかりません
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "バリデーションエラー"
+                  errors:
+                    type: object
+                    example:
+                      node_type: ["有効なノードタイプを選択してください"]
+
+  /workflows/{workflowId}/nodes/{nodeId}:
+    parameters:
+      - name: workflowId
+        in: path
+        required: true
+        description: ワークフローID
+        schema:
+          type: integer
+        example: 1
+      - name: nodeId
+        in: path
+        required: true
+        description: ノードID
+        schema:
+          type: integer
+        example: 1
+
+    delete:
+      summary: ノード削除
+      description: 指定されたワークフローからノードを削除します
+      tags:
+        - ノード管理
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ノードを削除しました"
+        '404':
+          description: ワークフローまたはノードが見つかりません
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ワークフローまたはノードが見つかりません"
+
+  /workflows/{id}/run:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ワークフローID
+        schema:
+          type: integer
+        example: 1
+
+    post:
+      summary: ワークフロー実行（非同期）
+      description: 指定されたワークフローを非同期で実行します
+      tags:
+        - ワークフロー実行
+      responses:
+        '200':
+          description: 実行開始
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "ワークフロー実行を開始しました"
+                      session_id:
+                        type: string
+                        example: "workflow_1_abc123def456"
+                      status:
+                        type: string
+                        example: "processing"
+                  message:
+                    type: string
+                    example: "ワークフロー実行を開始しました"
+              example:
+                success: true
+                data:
+                  message: "ワークフロー実行を開始しました"
+                  session_id: "workflow_1_abc123def456"
+                  status: "processing"
+                message: "ワークフロー実行を開始しました"
+        '404':
+          description: ワークフローが見つかりません
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /workflows/execution/{sessionId}:
+    parameters:
+      - name: sessionId
+        in: path
+        required: true
+        description: セッションID
+        schema:
+          type: string
+        example: "workflow_1_abc123def456"
+
+    get:
+      summary: 実行状況取得
+      description: ワークフロー実行の状況を取得します
+      tags:
+        - ワークフロー実行
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/ProcessingStatus'
+                      - $ref: '#/components/schemas/CompletedStatus'
+                      - $ref: '#/components/schemas/FailedStatus'
+                  message:
+                    type: string
+                    example: "実行状況を取得しました"
+              examples:
+                processing:
+                  summary: 実行中
+                  value:
+                    success: true
+                    data:
+                      status: "processing"
+                      message: "ワークフロー実行中..."
+                    message: "実行状況を取得しました"
+                completed:
+                  summary: 完了
+                  value:
+                    success: true
+                    data:
+                      status: "completed"
+                      result:
+                        workflow_id: 1
+                        workflow_name: "サンプルワークフロー"
+                        input_type: "text"
+                        output_type: "text"
+                        results:
+                          - node_id: 1
+                            node_type: "formatter"
+                            input: "hello world"
+                            output: "HELLO WORLD"
+                            config:
+                              format_type: "uppercase"
+                        final_result: "HELLO WORLD"
+                    message: "実行結果を取得しました"
+                failed:
+                  summary: エラー
+                  value:
+                    success: true
+                    data:
+                      status: "failed"
+                      error: "ノード処理中にエラーが発生しました"
+                      details: "詳細なエラー情報"
+                    message: "実行エラーを取得しました"
+        '404':
+          description: セッションが見つかりません
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "セッションが見つかりません"
+
+  /files/upload:
+    post:
+      summary: PDFファイルアップロード
+      description: PDFファイルをアップロードします（最大10MB）
+      tags:
+        - ファイル管理
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDFファイル（最大10MB）
+              required:
+                - file
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUpload'
+              example:
+                id: 1
+                original_name: "document.pdf"
+                file_path: "/storage/uploads/1754464759_document.pdf"
+                file_size: 1024000
+                mime_type: "application/pdf"
+                created_at: "2024-01-01T00:00:00.000000Z"
+        '422':
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "PDFファイルのみアップロード可能です"
+                  errors:
+                    type: object
+                    example:
+                      file: ["PDFファイルのみアップロード可能です"]
+
+components:
+  schemas:
+    Workflow:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ワークフローID
+        name:
+          type: string
+          description: ワークフロー名
+        input_type:
+          type: string
+          enum: [text, pdf]
+          description: 入力種別
+        output_type:
+          type: string
+          enum: [text, pdf]
+          description: 出力種別
+        input_data:
+          type: string
+          description: 入力データ（テキストまたはファイルパス）
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'
+          description: ノード一覧
+      required:
+        - id
+        - name
+        - input_type
+        - output_type
+        - input_data
+        - created_at
+        - updated_at
+
+    Node:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ノードID
+        workflow_id:
+          type: integer
+          description: ワークフローID
+        node_type:
+          type: string
+          enum: [formatter, extract_text, generative_ai]
+          description: ノードタイプ
+        config:
+          type: object
+          description: ノード設定（JSON形式）
+        order:
+          type: integer
+          description: 実行順序
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+      required:
+        - id
+        - workflow_id
+        - node_type
+        - config
+        - order
+        - created_at
+        - updated_at
+
+    CreateWorkflowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ワークフロー名
+          minLength: 1
+          maxLength: 255
+        input_type:
+          type: string
+          enum: [text, pdf]
+          description: 入力種別
+        output_type:
+          type: string
+          enum: [text, pdf]
+          description: 出力種別
+        input_data:
+          type: string
+          description: 入力データ（テキストまたはファイルパス）
+      required:
+        - name
+        - input_type
+        - output_type
+        - input_data
+
+    UpdateWorkflowRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ワークフロー名
+          minLength: 1
+          maxLength: 255
+        input_type:
+          type: string
+          enum: [text, pdf]
+          description: 入力種別
+        output_type:
+          type: string
+          enum: [text, pdf]
+          description: 出力種別
+        input_data:
+          type: string
+          description: 入力データ（テキストまたはファイルパス）
+      required:
+        - name
+        - input_type
+        - output_type
+        - input_data
+
+    AddNodeRequest:
+      type: object
+      properties:
+        node_type:
+          type: string
+          enum: [formatter, extract_text, generative_ai]
+          description: ノードタイプ
+        config:
+          type: object
+          description: ノード設定
+          oneOf:
+            - $ref: '#/components/schemas/FormatterConfig'
+            - $ref: '#/components/schemas/ExtractTextConfig'
+            - $ref: '#/components/schemas/GenerativeAiConfig'
+      required:
+        - node_type
+        - config
+
+    FormatterConfig:
+      type: object
+      properties:
+        format_type:
+          type: string
+          enum: [uppercase, lowercase, fullwidth, halfwidth]
+          description: フォーマットタイプ
+      required:
+        - format_type
+
+    ExtractTextConfig:
+      type: object
+      properties:
+        file_path:
+          type: string
+          description: PDFファイルパス
+      required:
+        - file_path
+
+    GenerativeAiConfig:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: AIへの指示文
+        model:
+          type: string
+          description: 使用するAIモデル
+          default: "google/gemma-3n-e2b-it:free"
+        max_tokens:
+          type: integer
+          description: 最大トークン数
+          default: 1000
+          minimum: 1
+          maximum: 4000
+        temperature:
+          type: number
+          format: float
+          description: 創造性パラメータ
+          default: 0.7
+          minimum: 0.0
+          maximum: 2.0
+      required:
+        - prompt
+
+    FileUpload:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ファイルID
+        original_name:
+          type: string
+          description: 元のファイル名
+        file_path:
+          type: string
+          description: 保存されたファイルパス
+        file_size:
+          type: integer
+          description: ファイルサイズ（バイト）
+        mime_type:
+          type: string
+          description: MIMEタイプ
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+      required:
+        - id
+        - original_name
+        - file_path
+        - file_size
+        - mime_type
+        - created_at
+
+    ProcessingStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [processing]
+          description: 処理状況
+        message:
+          type: string
+          description: 処理メッセージ
+      required:
+        - status
+        - message
+
+    CompletedStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [completed]
+          description: 処理状況
+        result:
+          $ref: '#/components/schemas/ExecutionResult'
+      required:
+        - status
+        - result
+
+    FailedStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [failed]
+          description: 処理状況
+        error:
+          type: string
+          description: エラーメッセージ
+        details:
+          type: string
+          description: 詳細エラー情報
+      required:
+        - status
+        - error
+
+    ExecutionResult:
+      type: object
+      properties:
+        workflow_id:
+          type: integer
+          description: ワークフローID
+        workflow_name:
+          type: string
+          description: ワークフロー名
+        input_type:
+          type: string
+          enum: [text, pdf]
+          description: 入力種別
+        output_type:
+          type: string
+          enum: [text, pdf]
+          description: 出力種別
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              node_id:
+                type: integer
+                description: ノードID
+              node_type:
+                type: string
+                description: ノードタイプ
+              input:
+                type: string
+                description: 入力データ
+              output:
+                type: string
+                description: 出力データ
+              config:
+                type: object
+                description: ノード設定
+        final_result:
+          type: string
+          description: 最終結果
+      required:
+        - workflow_id
+        - workflow_name
+        - input_type
+        - output_type
+        - results
+        - final_result
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: エラーコード
+            message:
+              type: string
+              description: エラーメッセージ
+            details:
+              type: object
+              description: 詳細エラー情報
+          required:
+            - code
+            - message
+      required:
+        - success
+        - error
+
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: APIキー（将来の実装）
+
+tags:
+  - name: システム
+    description: システム関連のエンドポイント
+  - name: ワークフロー管理
+    description: ワークフローの作成・取得・更新・削除
+  - name: ノード管理
+    description: ノードの追加・削除・設定
+  - name: ワークフロー実行
+    description: ワークフローの実行と状況監視
+  - name: ファイル管理
+    description: PDFファイルのアップロード

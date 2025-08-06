@@ -8,6 +8,7 @@ help:
 	@echo "Workflow App - 利用可能なコマンド:"
 	@echo ""
 	@echo "環境構築:"
+	@echo "  make init           - 完全初期化（セットアップ、起動、マイグレーション、シーダー）"
 	@echo "  make setup          - 初回セットアップ（環境変数設定、依存関係インストール）"
 	@echo "  make install-deps   - 依存関係のインストール"
 	@echo "  make backend-setup  - バックエンド環境設定"
@@ -40,6 +41,13 @@ setup: install-deps backend-setup
 	@echo "✅ セットアップ完了！"
 	@echo "次のコマンドでアプリケーションを起動してください:"
 	@echo "  make start"
+
+# 完全初期化（セットアップ、起動、マイグレーション、シーダー）
+init: setup start migrate seed
+	@echo "✅ 完全初期化完了！"
+	@echo "🌐 フロントエンド: http://localhost:3000"
+	@echo "🔗 バックエンドAPI: http://localhost:8000"
+	@echo "📚 SwaggerUI: http://localhost:8000/swagger"
 
 # 依存関係のインストール
 install-deps:
@@ -185,4 +193,5 @@ status:
 	@echo "🌐 アクセス可能なURL:"
 	@echo "  フロントエンド: http://localhost:3000"
 	@echo "  バックエンドAPI: http://localhost:8000"
+	@echo "  SwaggerUI: http://localhost:8000/swagger"
 	@echo "  Redis: localhost:6379" 
