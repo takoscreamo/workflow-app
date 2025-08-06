@@ -42,6 +42,7 @@ workflow-app/
 
 - Docker
 - Docker Compose
+- Make（オプション、便利なコマンドを使用する場合）
 
 ### 1. リポジトリのクローン
 
@@ -50,10 +51,24 @@ git clone <repository-url>
 cd workflow-app
 ```
 
-### 2. 環境変数の設定
+### 2. 簡単セットアップ（推奨）
 
 ```bash
-# バックエンドの環境変数を設定
+# 初回セットアップ（環境変数設定、依存関係インストール）
+make setup
+
+# アプリケーション起動
+make start
+
+# データベースのマイグレーションとシーダー
+make migrate
+make seed
+```
+
+### 3. 手動セットアップ
+
+```bash
+# 環境変数の設定
 cp backend/.env.example backend/.env
 
 # OpenRouter APIキーを設定（オプション）
@@ -61,21 +76,10 @@ echo "OPENROUTER_API_KEY=your-api-key-here" >> backend/.env
 
 # フロントエンドの環境変数を設定
 echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api" > frontend/.env.local
-```
 
-### 3. Docker Composeで起動
-
-```bash
-# 全サービスを起動
+# Docker Composeで起動
 docker-compose up -d
 
-# ログを確認
-docker-compose logs -f
-```
-
-### 4. データベースのマイグレーションとシーダー
-
-```bash
 # バックエンドコンテナに入る
 docker-compose exec backend bash
 
@@ -86,12 +90,39 @@ php artisan migrate
 php artisan db:seed
 ```
 
-### 5. アプリケーションにアクセス
+### 4. アプリケーションにアクセス
 
 - **フロントエンド**: http://localhost:3000
 - **バックエンドAPI**: http://localhost:8000
 - **データベース**: SQLite（backend/database/database.sqlite）
 - **Redis**: localhost:6379
+
+### 5. 便利なコマンド
+
+```bash
+# ヘルプ表示
+make help
+
+# アプリケーション管理
+make start          # 起動
+make stop           # 停止
+make restart        # 再起動
+make logs           # ログ表示
+
+# テスト実行
+make test           # 全テスト
+make test-unit      # ユニットテスト
+make test-feature   # Featureテスト
+
+# データベース
+make migrate        # マイグレーション
+make seed           # シーダー
+make db-reset       # データベースリセット
+
+# クリーンアップ
+make clean          # コンテナ・ボリューム削除
+make cache-clear    # キャッシュクリア
+```
 
 ## 📋 実装済み機能
 
@@ -349,23 +380,41 @@ php artisan db:seed
    - API仕様書
    - 開発者ガイド
 
-## 🚀 次のステップ
+## 📚 ドキュメント
 
-現在、Phase 3（非同期処理実装）が完了しました。次のPhase 4ではテスト実装を行い、システムの品質向上を図ります。
+### 開発者向けドキュメント
 
-## 🧪 テスト方法
+- **[API仕様書](API.md)** - バックエンドAPIの詳細仕様
+- **[開発者ガイド](DEVELOPER_GUIDE.md)** - 開発環境セットアップ、アーキテクチャ、開発フロー
+- **[タスク管理](TASK.md)** - 実装タスクと進捗状況
+
+### テスト方法
+
+```bash
+# 全テスト実行
+make test
+
+# ユニットテストのみ
+make test-unit
+
+# Featureテストのみ
+make test-feature
+
+# 詳細出力付きテスト
+make test-all
+```
 
 ### Queueシステムのテスト
 
 ```bash
 # バックエンドコンテナに入る
-docker-compose exec backend bash
+make backend-shell
 
 # テストジョブを実行
 php artisan test:queue
 
 # Queueワーカーのログを確認
-docker-compose logs queue-worker
+make logs
 ```
 
 ### 非同期処理の動作確認
@@ -375,4 +424,24 @@ docker-compose logs queue-worker
 3. 実行ボタンをクリック
 4. 「実行中...」の表示を確認
 5. 実行完了後に結果を確認
+
+## 🎯 プロジェクト完了状況
+
+### ✅ 完了済み（Phase 1-4）
+- **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
+- **Phase 2**: 3つのノードタイプ実装（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
+- **Phase 3**: 非同期処理実装（Laravel Queue + Redis）
+- **Phase 4**: テスト実装（ユニットテスト・Featureテスト・統合テスト）
+- **Phase 5**: ドキュメント完成（Makefile、API仕様書、開発者ガイド）
+
+### 🎉 全機能実装完了
+
+Workflow Appの全機能が実装完了しました！
+
+- ✅ オニオンアーキテクチャ実装
+- ✅ 3つのノードタイプ（FORMATTER、EXTRACT_TEXT、GENERATIVE_AI）
+- ✅ 非同期処理システム（Laravel Queue + Redis）
+- ✅ フロントエンド（Next.js + TypeScript）
+- ✅ テスト環境（PHPUnit）
+- ✅ ドキュメント完成（API仕様書、開発者ガイド、Makefile）
 
