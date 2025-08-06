@@ -116,6 +116,10 @@ export default function Home() {
     await loadWorkflows();
   };
 
+  const handleNodeAdded = async () => {
+    await loadWorkflows();
+  };
+
   const handleEditWorkflow = (workflow: Workflow, file: File | null = null) => {
     setEditingWorkflow(editingWorkflow === workflow.id ? null : workflow.id);
   };
@@ -163,6 +167,7 @@ export default function Home() {
             onAddNode={handleAddNode}
             onShowResult={handleShowResult}
             onNodeDeleted={handleNodeDeleted}
+            onNodeAdded={handleNodeAdded}
             onCancel={handleCancelEdit}
             onError={handleError}
             editingWorkflow={editingWorkflow}

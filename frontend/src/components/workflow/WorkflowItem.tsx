@@ -17,6 +17,7 @@ interface WorkflowItemProps {
   onAddNode: (id: number) => void;
   onShowResult: (id: number) => void;
   onNodeDeleted: () => void;
+  onNodeAdded: () => void;
   onCancel?: () => void;
   onError?: (error: string) => void;
   isEditing: boolean;
@@ -34,6 +35,7 @@ export function WorkflowItem({
   onAddNode,
   onShowResult,
   onNodeDeleted,
+  onNodeAdded,
   onCancel,
   onError,
   isEditing,
@@ -257,7 +259,10 @@ export function WorkflowItem({
         <div className="px-4 pb-4 border-t border-gray-100">
           <NodeForm 
             workflowId={workflow.id} 
-            onSuccess={() => onAddNode(workflow.id)}
+            onSuccess={() => {
+              onAddNode(workflow.id);
+              onNodeAdded();
+            }}
             onCancel={() => onAddNode(workflow.id)}
             onError={onError}
           />
