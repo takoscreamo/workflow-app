@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WorkflowController extends Controller
 {
@@ -155,6 +156,11 @@ class WorkflowController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
+        Log::info('WorkflowController::update called', [
+            'id' => $id,
+            'request_data' => $request->all()
+        ]);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'input_type' => 'sometimes|string|in:text,pdf',
@@ -163,11 +169,27 @@ class WorkflowController extends Controller
         ]);
 
         $dto = UpdateWorkflowDTO::fromRequest((int) $id, $request->all());
+
+                Log::info('UpdateWorkflowDTO created', [
+            'dto_id' => $dto->id,
+            'dto_name' => $dto->name,
+            'dto_input_type' => $dto->inputType,
+            'dto_output_type' => $dto->outputType,
+            'dto_input_data' => $dto->inputData
+        ]);
+
         $workflow = $this->workflowUsecase->updateWorkflow($dto);
 
         if (!$workflow) {
+            Log::error('Workflow not found for update', ['id' => $id]);
             return response()->json(['message' => 'ワークフローが見つかりません'], 404);
         }
+
+        Log::info('Workflow updated successfully', [
+            'workflow_id' => $workflow->id,
+            'workflow_name' => $workflow->name,
+            'workflow_input_data' => $workflow->inputData
+        ]);
 
         return response()->json($workflow);
     }

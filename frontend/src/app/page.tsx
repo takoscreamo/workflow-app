@@ -46,17 +46,34 @@ export default function Home() {
   };
 
   const handleUpdateWorkflow = async (workflow: Workflow, file: File | null) => {
+    console.log('handleUpdateWorkflow called with:', {
+      workflowId: workflow.id,
+      name: workflow.name,
+      input_type: workflow.input_type,
+      output_type: workflow.output_type,
+      input_data: workflow.input_data,
+      input_data_length: workflow.input_data?.length
+    });
+    
     try {
-      await updateWorkflow(workflow.id, {
+      console.log('Calling updateWorkflow...');
+      const result = await updateWorkflow(workflow.id, {
         name: workflow.name,
         input_type: workflow.input_type,
         output_type: workflow.output_type,
         input_data: workflow.input_data || ''
       }, file);
+      
+      console.log('updateWorkflow result:', result);
+      console.log('Reloading workflows...');
       await loadWorkflows();
+      console.log('Setting editingWorkflow to null...');
       setEditingWorkflow(null);
+      console.log('handleUpdateWorkflow completed successfully');
     } catch (error) {
-      // エラーはuseWorkflowActionsで処理済み
+      console.error('handleUpdateWorkflow error:', error);
+      // エラーを再スローして、WorkflowItemでキャッチできるようにする
+      throw error;
     }
   };
 
@@ -137,6 +154,7 @@ export default function Home() {
         <WorkflowList
           workflows={workflows}
           onEdit={handleEditWorkflow}
+          onSave={handleUpdateWorkflow}
           onDelete={handleDeleteWorkflow}
           onRun={handleRunWorkflow}
           onAddNode={handleAddNode}

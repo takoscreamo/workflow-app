@@ -90,23 +90,32 @@ export function useWorkflowActions() {
   };
 
   const updateWorkflow = async (id: number, data: UpdateWorkflowData, file: File | null) => {
+    console.log('useWorkflowActions.updateWorkflow called with:', { id, data, hasFile: !!file });
+    
     try {
       setError(null);
       let inputData = data.input_data;
       
       if (data.input_type === 'pdf' && file) {
+        console.log('Uploading PDF file...');
         inputData = await handleFileUpload(file);
+        console.log('PDF uploaded, file path:', inputData);
       }
 
-      const updatedWorkflow = await api.updateWorkflow(id, {
+      const requestData = {
         name: data.name,
         input_type: data.input_type,
         output_type: data.output_type,
         input_data: inputData
-      });
+      };
+      
+      console.log('Sending update request with data:', requestData);
+      const updatedWorkflow = await api.updateWorkflow(id, requestData);
+      console.log('Update response:', updatedWorkflow);
 
       return updatedWorkflow;
     } catch (err) {
+      console.error('updateWorkflow error:', err);
       const errorMessage = err instanceof Error ? err.message : 'ワークフローの更新に失敗しました';
       setError(errorMessage);
       throw new Error(errorMessage);

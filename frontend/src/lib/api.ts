@@ -35,6 +35,8 @@ export const api = {
 
   // ワークフローを更新
   async updateWorkflow(id: number, data: UpdateWorkflowRequest): Promise<Workflow> {
+    console.log('api.updateWorkflow called with:', { id, data });
+    
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'PUT',
       headers: {
@@ -42,10 +44,18 @@ export const api = {
       },
       body: JSON.stringify(data),
     });
+    
+    console.log('Update response status:', response.status);
+    
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Update failed with status:', response.status, 'error:', errorText);
       throw new Error('ワークフローの更新に失敗しました');
     }
-    return response.json();
+    
+    const result = await response.json();
+    console.log('Update successful, result:', result);
+    return result;
   },
 
   // ワークフローを削除

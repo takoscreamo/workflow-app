@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Workflow } from '@/types/workflow';
 import { Button } from '@/components/common/Button';
 import { InputField } from '@/components/forms/InputField';
@@ -11,6 +11,7 @@ import { NodeList } from '@/components/node/NodeList';
 interface WorkflowItemProps {
   workflow: Workflow;
   onEdit: (workflow: Workflow, file: File | null) => void;
+  onSave: (workflow: Workflow, file: File | null) => void;
   onDelete: (id: number) => void;
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
@@ -27,6 +28,7 @@ interface WorkflowItemProps {
 export function WorkflowItem({ 
   workflow, 
   onEdit, 
+  onSave, 
   onDelete, 
   onRun, 
   onAddNode,
@@ -44,6 +46,18 @@ export function WorkflowItem({
   const [editingOutputType, setEditingOutputType] = useState(workflow.output_type);
   const [editingInputData, setEditingInputData] = useState(workflow.input_data || '');
   const [editingSelectedFile, setEditingSelectedFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 編集状態が開始されたときのみ状態を初期化
+  useEffect(() => {
+    if (isEditing) {
+      setEditingName(workflow.name);
+      setEditingInputType(workflow.input_type);
+      setEditingOutputType(workflow.output_type);
+      setEditingInputData(workflow.input_data || '');
+      setEditingSelectedFile(null);
+    }
+  }, [isEditing, workflow.id]);
 
   const hasExecutionResult = !!executionResults[workflow.id];
 
@@ -57,15 +71,47 @@ export function WorkflowItem({
     { value: 'pdf', label: 'PDF' }
   ];
 
-  const handleSave = () => {
-    // 編集保存のロジックは親コンポーネントで実装
-    onEdit({
-      ...workflow,
+  const handleSave = async () => {
+    console.log('handleSave called');
+    console.log('onSave function:', onSave);
+    
+    if (!editingName.trim()) {
+      if (onError) {
+        onError('ワークフロー名を入力してください');
+      }
+      return;
+    }
+
+    console.log('保存処理を開始:', {
+      workflowId: workflow.id,
       name: editingName,
       input_type: editingInputType,
       output_type: editingOutputType,
-      input_data: editingInputData
-    }, editingSelectedFile);
+      input_data: editingInputData,
+      input_data_length: editingInputData?.length
+    });
+
+    setIsSaving(true);
+    try {
+      console.log('Calling onSave function...');
+      // 編集保存のロジックは親コンポーネントで実装
+      await onSave({
+        ...workflow,
+        name: editingName,
+        input_type: editingInputType,
+        output_type: editingOutputType,
+        input_data: editingInputData
+      }, editingSelectedFile);
+      
+      console.log('保存処理が完了しました');
+    } catch (error) {
+      console.error('保存処理でエラーが発生:', error);
+      if (onError) {
+        onError(error instanceof Error ? error.message : '保存に失敗しました');
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -112,7 +158,10 @@ export function WorkflowItem({
                 <TextareaField
                   label="入力データ"
                   value={editingInputData}
-                  onChange={setEditingInputData}
+                  onChange={(value) => {
+                    console.log('入力データが変更されました:', value);
+                    setEditingInputData(value);
+                  }}
                   rows={3}
                 />
               ) : (
@@ -128,13 +177,15 @@ export function WorkflowItem({
                   variant="success"
                   size="sm"
                   onClick={handleSave}
+                  disabled={isSaving}
                 >
-                  保存
+                  {isSaving ? '保存中...' : '保存'}
                 </Button>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleCancel}
+                  disabled={isSaving}
                 >
                   キャンセル
                 </Button>

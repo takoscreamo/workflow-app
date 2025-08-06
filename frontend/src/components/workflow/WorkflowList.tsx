@@ -4,6 +4,7 @@ import { WorkflowItem } from '@/components/workflow/WorkflowItem';
 interface WorkflowListProps {
   workflows: Workflow[];
   onEdit: (workflow: Workflow, file: File | null) => void;
+  onSave: (workflow: Workflow, file: File | null) => void;
   onDelete: (id: number) => void;
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
@@ -20,6 +21,7 @@ interface WorkflowListProps {
 export function WorkflowList({ 
   workflows, 
   onEdit, 
+  onSave, 
   onDelete, 
   onRun, 
   onAddNode,
@@ -48,6 +50,7 @@ export function WorkflowList({
               key={workflow.id}
               workflow={workflow}
               onEdit={onEdit}
+              onSave={onSave}
               onDelete={onDelete}
               onRun={onRun}
               onAddNode={onAddNode}
