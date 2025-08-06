@@ -2,8 +2,6 @@
 
 namespace App\Domain\Entities;
 
-use App\Domain\Entities\Node;
-
 /**
  * ワークフローのドメインルール違反を表す例外
  */
