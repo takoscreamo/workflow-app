@@ -9,7 +9,7 @@
 ### 技術スタック
 
 - **バックエンド**: Laravel 11 (PHP 8.2)
-- **フロントエンド**: Next.js 13+ (TypeScript)
+- **フロントエンド**: Next.js 13 (TypeScript)
 - **データベース**: SQLite（開発環境）
 - **キャッシュ/キュー**: Redis 7
 - **コンテナ化**: Docker Compose
@@ -296,13 +296,7 @@ class NodeProcessorFactory
 }
 ```
 
-## 🧪 テスト戦略
-
-### テストピラミッド
-
-1. **ユニットテスト** - 個別のクラス・メソッド
-2. **Featureテスト** - 機能単位のテスト
-3. **統合テスト** - システム全体のテスト
+## 🧪 テスト
 
 ### テスト実行
 
@@ -499,32 +493,3 @@ make test
 # アプリケーション確認
 make status
 ```
-
-### 本番環境（将来の拡張）
-
-```bash
-# 本番環境用ビルド
-make build
-
-# 本番環境デプロイ
-make deploy
-```
-
-## 📖 参考資料
-
-- [Laravel 11 ドキュメント](https://laravel.com/docs/11.x)
-- [Next.js 13+ ドキュメント](https://nextjs.org/docs)
-- [オニオンアーキテクチャ](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Docker Compose ドキュメント](https://docs.docker.com/compose/)
-
-## 🤝 コントリビューション
-
-1. フォークを作成
-2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'feat: add amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
-
-## 📝 ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。 
