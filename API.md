@@ -2,18 +2,15 @@
 
 ## 概要
 
-Workflow Appは、ユーザーが自由に定義できるワークフロー（処理の流れ）を構築し、実行できるアプリケーションです。
 このドキュメントでは、バックエンドAPIの詳細仕様を説明します。
+[OpenAPIドキュメント](backend/public/api/openapi.yaml) でも確認できます。
+SwaggerUIでも、アプリケーション起動後、http://localhost:8000/swagger で確認できます。
 
 ## ベースURL
 
 ```
 http://localhost:8000/api
 ```
-
-## 認証
-
-現在のバージョンでは認証機能は実装されていません。
 
 ## 共通レスポンス形式
 

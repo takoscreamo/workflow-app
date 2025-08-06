@@ -57,7 +57,7 @@ make init
 
 ## 📚 詳細ドキュメント
 
-- **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - プロジェクトの包括的なガイド（アーキテクチャ、開発環境、API仕様、進捗状況）
+- **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - プロジェクトの包括的なガイド（アーキテクチャ、開発環境など）
 - **[API.md](API.md)** - バックエンドAPIの詳細仕様
 
 ## ⚠️ 注意事項
