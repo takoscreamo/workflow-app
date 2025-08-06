@@ -24,7 +24,7 @@ Route::prefix('workflows')->group(function () {
     Route::put('/{id}', [WorkflowController::class, 'update']);
     Route::delete('/{id}', [WorkflowController::class, 'destroy']);
     Route::post('/{id}/nodes', [WorkflowController::class, 'addNode']);
-    Route::post('/{id}/run', [WorkflowController::class, 'run']);
+    Route::post('/{id}/run', [WorkflowController::class, 'runWorkflow']);
 });
 
 // ファイルアップロード関連のAPIルート

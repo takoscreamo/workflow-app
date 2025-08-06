@@ -12,7 +12,7 @@ export default function Home() {
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
   const [showAddNode, setShowAddNode] = useState<number | null>(null);
-  const [nodeType, setNodeType] = useState<NodeType>(NodeType.FORMATTER);
+  const [nodeType, setNodeType] = useState<NodeType>('' as NodeType);
   const [nodeConfig, setNodeConfig] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
@@ -90,11 +90,23 @@ export default function Home() {
 
   const addNode = async (workflowId: number) => {
     try {
-      await api.addNode(workflowId, { node_type: nodeType, config: nodeConfig });
+      if (!nodeType) {
+        setError('ノードタイプを選択してください');
+        return;
+      }
+      
+      const requestData = { node_type: nodeType, config: nodeConfig };
+      console.log('送信データ:', requestData);
+      console.log('ノードタイプ:', nodeType);
+      console.log('ノード設定:', nodeConfig);
+      
+      await api.addNode(workflowId, requestData);
       await loadWorkflows(); // ワークフロー一覧を再読み込み
       setShowAddNode(null);
       setNodeConfig({});
+      setNodeType('' as NodeType);
     } catch (err) {
+      console.error('ノード追加エラー:', err);
       setError(err instanceof Error ? err.message : 'ノードの追加に失敗しました');
     }
   };
@@ -119,8 +131,11 @@ export default function Home() {
   };
 
   const handleNodeTypeChange = (type: NodeType) => {
+    console.log('ノードタイプ変更:', type);
     setNodeType(type);
-    setNodeConfig(getDefaultConfig(type));
+    const defaultConfig = getDefaultConfig(type);
+    console.log('デフォルト設定:', defaultConfig);
+    setNodeConfig(defaultConfig);
   };
 
   if (loading) {
@@ -251,10 +266,15 @@ export default function Home() {
                         <div>
                           <label className="block text-xs text-gray-600 mb-1">ノードタイプ</label>
                           <select
-                            value={nodeType}
-                            onChange={(e) => handleNodeTypeChange(e.target.value as NodeType)}
+                            value={nodeType || ''}
+                            onChange={(e) => {
+                              const selectedType = e.target.value as NodeType;
+                              console.log('ノードタイプ選択:', selectedType);
+                              handleNodeTypeChange(selectedType);
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
+                            <option value="">ノードタイプを選択</option>
                             <option value={NodeType.FORMATTER}>FORMATTER - テキスト整形</option>
                             <option value={NodeType.EXTRACT_TEXT}>EXTRACT_TEXT - PDFテキスト抽出</option>
                             <option value={NodeType.GENERATIVE_AI}>GENERATIVE_AI - AI処理</option>

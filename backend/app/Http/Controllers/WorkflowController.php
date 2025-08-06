@@ -58,10 +58,17 @@ class WorkflowController extends Controller
      */
     public function addNode(Request $request, string $id): JsonResponse
     {
-        $request->validate([
-            'node_type' => 'required|string|in:' . implode(',', array_column(NodeType::cases(), 'value')),
-            'config' => 'required|array',
-        ]);
+        try {
+            $request->validate([
+                'node_type' => 'required|string|in:' . implode(',', array_column(NodeType::cases(), 'value')),
+                'config' => 'required|array',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'バリデーションエラー',
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         $dto = AddNodeDTO::fromRequest((int) $id, $request->all());
         $node = $this->workflowUsecase->addNode($dto);
@@ -72,7 +79,7 @@ class WorkflowController extends Controller
     /**
      * ワークフローを実行（非同期処理の準備）
      */
-    public function run(string $id): JsonResponse
+    public function runWorkflow(string $id): JsonResponse
     {
         try {
             $result = $this->workflowUsecase->runWorkflow((int) $id);
