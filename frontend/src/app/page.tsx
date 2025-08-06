@@ -9,11 +9,24 @@ import { WorkflowForm, WorkflowList, ExecutionResultModal } from '@/components/w
 
 export default function Home() {
   const { workflows, loading, error: workflowsError, loadWorkflows, setError: setWorkflowsError } = useWorkflows();
-  const { createWorkflow, updateWorkflow, deleteWorkflow, runWorkflow, error: actionsError, setError: setActionsError, isExecuting } = useWorkflowActions();
+  const { 
+    createWorkflow, 
+    updateWorkflow, 
+    deleteWorkflow, 
+    runWorkflow, 
+    getExecutionResult,
+    clearExecutionResult,
+    error: actionsError, 
+    setError: setActionsError, 
+    executingWorkflows,
+    executionResults
+  } = useWorkflowActions();
   
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [showAddNode, setShowAddNode] = useState<number | null>(null);
   const [executionResult, setExecutionResult] = useState<string | null>(null);
+  const [executionResultType, setExecutionResultType] = useState<'text' | 'pdf'>('text');
+  const [executionWorkflowId, setExecutionWorkflowId] = useState<number | null>(null);
   const [showExecutionResult, setShowExecutionResult] = useState(false);
 
   // エラー状態を統合
@@ -61,12 +74,20 @@ export default function Home() {
   const handleRunWorkflow = async (id: number) => {
     try {
       const result = await runWorkflow(id);
-      if (result.type === 'text') {
-        setExecutionResult(result.result);
-        setShowExecutionResult(true);
-      }
+      // テキストとPDFの両方とも、結果表示ボタンでのみ表示する
+      // 自動的なモーダル表示は行わない
     } catch (error) {
       // エラーはuseWorkflowActionsで処理済み
+    }
+  };
+
+  const handleShowResult = (id: number) => {
+    const result = getExecutionResult(id);
+    if (result) {
+      setExecutionResult(result.result);
+      setExecutionResultType(result.type);
+      setExecutionWorkflowId(id);
+      setShowExecutionResult(true);
     }
   };
 
@@ -101,6 +122,8 @@ export default function Home() {
           isOpen={showExecutionResult}
           onClose={() => setShowExecutionResult(false)}
           result={executionResult}
+          resultType={executionResultType}
+          workflowId={executionWorkflowId || undefined}
         />
 
         <WorkflowList
@@ -109,10 +132,12 @@ export default function Home() {
           onDelete={handleDeleteWorkflow}
           onRun={handleRunWorkflow}
           onAddNode={handleAddNode}
+          onShowResult={handleShowResult}
           onError={handleError}
           editingWorkflow={editingWorkflow}
           showAddNode={showAddNode}
-          isExecuting={isExecuting}
+          executingWorkflows={executingWorkflows}
+          executionResults={executionResults}
         />
       </div>
     </div>

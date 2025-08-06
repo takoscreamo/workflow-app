@@ -13,10 +13,12 @@ interface WorkflowItemProps {
   onDelete: (id: number) => void;
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
+  onShowResult: (id: number) => void;
   onError?: (error: string) => void;
   isEditing: boolean;
   showAddNode: boolean;
-  isExecuting?: boolean;
+  isExecuting: boolean;
+  executionResults: Record<number, { type: 'text' | 'pdf'; result: string }>;
 }
 
 export function WorkflowItem({ 
@@ -25,16 +27,20 @@ export function WorkflowItem({
   onDelete, 
   onRun, 
   onAddNode,
+  onShowResult,
   onError,
   isEditing,
   showAddNode,
-  isExecuting = false
+  isExecuting,
+  executionResults
 }: WorkflowItemProps) {
   const [editingName, setEditingName] = useState(workflow.name);
   const [editingInputType, setEditingInputType] = useState(workflow.input_type);
   const [editingOutputType, setEditingOutputType] = useState(workflow.output_type);
   const [editingInputData, setEditingInputData] = useState(workflow.input_data || '');
   const [editingSelectedFile, setEditingSelectedFile] = useState<File | null>(null);
+
+  const hasExecutionResult = !!executionResults[workflow.id];
 
   const inputTypeOptions = [
     { value: 'text', label: 'テキスト' },
@@ -158,6 +164,14 @@ export function WorkflowItem({
               disabled={isExecuting}
             >
               {isExecuting ? '実行中...' : '実行'}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onShowResult(workflow.id)}
+              disabled={!hasExecutionResult || isExecuting}
+            >
+              結果表示
             </Button>
             <Button
               variant="warning"

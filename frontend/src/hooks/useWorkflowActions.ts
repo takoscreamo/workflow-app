@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { WorkflowRunResult } from '@/types/workflow';
 
@@ -22,9 +22,39 @@ interface ExecutionStatus {
   message?: string;
 }
 
+interface ExecutionResult {
+  type: 'text' | 'pdf';
+  result: string;
+}
+
+const STORAGE_KEY = 'workflow_execution_results';
+
 export function useWorkflowActions() {
   const [error, setError] = useState<string | null>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
+  const [executingWorkflows, setExecutingWorkflows] = useState<Set<number>>(new Set());
+  const [executionResults, setExecutionResults] = useState<Record<number, ExecutionResult>>({});
+
+  // ローカルストレージから実行結果を復元
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setExecutionResults(parsed);
+      }
+    } catch (err) {
+      console.error('Failed to load execution results from localStorage:', err);
+    }
+  }, []);
+
+  // 実行結果をローカルストレージに保存
+  const saveExecutionResults = (results: Record<number, ExecutionResult>) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
+    } catch (err) {
+      console.error('Failed to save execution results to localStorage:', err);
+    }
+  };
 
   const handleFileUpload = async (file: File): Promise<string> => {
     try {
@@ -87,6 +117,18 @@ export function useWorkflowActions() {
     try {
       setError(null);
       await api.deleteWorkflow(id);
+      // ワークフロー削除時に実行結果も削除
+      const newResults = { ...executionResults };
+      delete newResults[id];
+      setExecutionResults(newResults);
+      saveExecutionResults(newResults);
+      
+      // 実行中のワークフローからも削除
+      setExecutingWorkflows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'ワークフローの削除に失敗しました';
       setError(errorMessage);
@@ -135,7 +177,9 @@ export function useWorkflowActions() {
   const runWorkflow = async (id: number) => {
     try {
       setError(null);
-      setIsExecuting(true);
+      
+      // 実行中のワークフローに追加
+      setExecutingWorkflows(prev => new Set([...prev, id]));
       
       // 非同期実行を開始
       const executionResponse = await api.runWorkflow(id);
@@ -149,18 +193,28 @@ export function useWorkflowActions() {
         console.log('Output type:', result.output_type);
         console.log('Final result length:', result.final_result?.length);
         
+        let executionResult: ExecutionResult;
+        
         if (result.output_type === 'pdf' && result.final_result) {
-          console.log('Downloading PDF...');
-          await api.downloadPdf(result.final_result, `workflow_result_${id}.pdf`);
-          console.log('PDF download completed');
-          return { type: 'pdf', result: result.final_result };
+          console.log('PDF result generated');
+          executionResult = { type: 'pdf', result: result.final_result };
         } else if (result.final_result) {
-          console.log('Showing text result in modal');
-          return { type: 'text', result: result.final_result };
+          console.log('Text result generated');
+          executionResult = { type: 'text', result: result.final_result };
         } else {
           console.log('No result available');
-          return { type: 'text', result: '結果がありません' };
+          executionResult = { type: 'text', result: '結果がありません' };
         }
+        
+        // 実行結果を保存
+        const newResults = {
+          ...executionResults,
+          [id]: executionResult
+        };
+        setExecutionResults(newResults);
+        saveExecutionResults(newResults);
+        
+        return executionResult;
       } else {
         throw new Error('ワークフロー実行の開始に失敗しました');
       }
@@ -170,17 +224,41 @@ export function useWorkflowActions() {
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
-      setIsExecuting(false);
+      // 実行中のワークフローから削除
+      setExecutingWorkflows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
+  };
+
+  const getExecutionResult = (id: number): ExecutionResult | null => {
+    return executionResults[id] || null;
+  };
+
+  const clearExecutionResult = (id: number) => {
+    const newResults = { ...executionResults };
+    delete newResults[id];
+    setExecutionResults(newResults);
+    saveExecutionResults(newResults);
+  };
+
+  const isWorkflowExecuting = (id: number): boolean => {
+    return executingWorkflows.has(id);
   };
 
   return {
     error,
     setError,
-    isExecuting,
+    executingWorkflows,
+    executionResults,
     createWorkflow,
     updateWorkflow,
     deleteWorkflow,
-    runWorkflow
+    runWorkflow,
+    getExecutionResult,
+    clearExecutionResult,
+    isWorkflowExecuting
   };
 } 

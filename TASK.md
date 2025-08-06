@@ -11,11 +11,11 @@
 - [x] 初期データのシーダー作成
 
 ### 2. 非同期処理によるWorkflow実行
-- [ ] `RunWorkflowJob`作成（Laravel Queue使用）
-- [ ] `RunNodeJob`作成（各ノード処理用）
-- [ ] Queue設定（Redis使用）
-- [ ] ジョブチェーン実装（`dispatch()->chain()`）
-- [ ] ワークフロー実行エンドポイントの非同期化
+- [x] `RunWorkflowJob`作成（Laravel Queue使用）
+- [x] `RunNodeJob`作成（各ノード処理用）
+- [x] Queue設定（Redis使用）
+- [x] ジョブチェーン実装（`dispatch()->chain()`）
+- [x] ワークフロー実行エンドポイントの非同期化
 
 ### 3. NodeType.GENERATIVE_AIの実装
 - [x] LLM API連携機能実装（OpenRouter API使用）
@@ -50,7 +50,8 @@
 - [x] `PUT /api/workflows/{id}` - ワークフロー更新
 - [x] `DELETE /api/workflows/{id}` - ワークフロー削除
 - [x] `POST /api/workflows/{id}/nodes` - ノード追加
-- [x] `POST /api/workflows/{id}/run` - ワークフロー実行（同期的な実装）
+- [x] `POST /api/workflows/{id}/run` - ワークフロー実行（非同期処理）
+- [x] `GET /api/workflows/execution/{sessionId}` - 実行状況取得
 
 ### 2. ファイルアップロードAPI
 - [x] `FileController`作成
@@ -98,7 +99,7 @@
   - `generative_ai`用（プロンプト、モデル設定）
   - `formatter`用（フォーマットルール設定）
 - [x] ファイルアップロードコンポーネント
-- [x] 実行ボタン・ステータス表示
+- [x] 実行ボタン・ステータス表示（非同期処理対応）
 
 ## 🔗 API連携・統合
 
@@ -109,8 +110,8 @@
 - [x] CORS設定最終調整
 
 ### 2. 非同期処理のフロントエンド対応
-- [ ] ワークフロー実行状況の監視
-- [ ] 実行結果の取得・表示
+- [x] ワークフロー実行状況の監視
+- [x] 実行結果の取得・表示
 
 ## 🧪 テスト実装
 
@@ -166,11 +167,12 @@
 - ✅ 基本APIエンドポイント実装完了
 - ✅ フロントエンド基本画面実装完了
 - ✅ **Phase 2**: 3つのノードタイプ実装完了（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
+- ✅ **Phase 3**: 非同期処理実装完了（Laravel Queue + Redis）
 
 ### 実装優先順位
 1. ✅ **Phase 1**: 基本画面実装、動作確認、データベース設計、マイグレーション実装
 2. ✅ **Phase 2**: 3つのノードタイプ実装（FORMATTER → EXTRACT_TEXT → GENERATIVE_AI）
-3. ⏳ **Phase 3**: 非同期処理実装
+3. ✅ **Phase 3**: 非同期処理実装（Laravel Queue + Redis）
 4. ⏳ **Phase 4**: テスト実装
 5. ⏳ **Phase 5**: ドキュメント完成
 
@@ -182,13 +184,13 @@
 - **バックエンド**: Laravel 11, PHP 8.2, SQLite（開発環境）, Redis 7
 - **フロントエンド**: Next.js 13+, TypeScript, Tailwind CSS
 - **アーキテクチャ**: オニオンアーキテクチャ（クリーンアーキテクチャ）
-- **非同期処理**: Laravel Queue + Redis（予定）
+- **非同期処理**: Laravel Queue + Redis（実装済み）
 - **PDF処理**: spatie/pdf-to-text（実装済み）
 - **LLM API**: OpenRouter API（実装済み）
 
 ### 重要な実装ポイント
 - ✅ ノードの`config`はJSON形式で保存し、各ノードタイプ固有の設定を管理
-- [ ] ワークフロー実行は必ず非同期処理で実装
+- ✅ ワークフロー実行は必ず非同期処理で実装
 - ✅ ファイルアップロードは適切なバリデーションを実装
 - ✅ エラーハンドリングを各層で適切に実装
 
@@ -197,10 +199,24 @@
 - **Usecase層**: アプリケーションのユースケース、DTOs
 - **Infrastructure層**: 外部依存（DB、API等）の実装
 - **Presentation層**: HTTPリクエストの処理
+- **Queue層**: 非同期ジョブ処理
 
 ### 実装完了済み機能
 1. ✅ **FORMATTER** - テキスト整形機能（大文字化・小文字化・全角変換・半角変換）
 2. ✅ **EXTRACT_TEXT** - PDFファイルアップロード・テキスト抽出
 3. ✅ **GENERATIVE_AI** - OpenRouter API連携（プロンプト・モデル・パラメータ設定）
 4. ✅ **ファイルアップロード** - PDFファイルアップロード機能
-5. ✅ **PDF出力** - TCPDFライブラリで日本語対応PDF生成 
+5. ✅ **PDF出力** - TCPDFライブラリで日本語対応PDF生成
+6. ✅ **非同期処理** - Laravel Queue + Redisによる非同期ワークフロー実行
+7. ✅ **実行状況監視** - フロントエンドでの実行状況ポーリング
+8. ✅ **エラーハンドリング** - ジョブ失敗時の適切な処理
+9. ✅ **ローディング状態** - 実行中のUI表示とボタン無効化
+
+### Phase 3実装詳細
+- **RunWorkflowJob**: ワークフロー実行専用ジョブクラス
+- **セッション管理**: 実行結果の一時保存と取得
+- **ポーリング機能**: 1秒間隔での実行状況確認
+- **タイムアウト設定**: 5分の実行タイムアウト
+- **リトライ機能**: 最大3回のリトライ
+- **エラーハンドリング**: ジョブ失敗時の適切な処理
+- **フロントエンド対応**: 実行中のUI表示とボタン無効化 

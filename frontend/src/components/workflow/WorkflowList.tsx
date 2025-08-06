@@ -7,10 +7,12 @@ interface WorkflowListProps {
   onDelete: (id: number) => void;
   onRun: (id: number) => void;
   onAddNode: (id: number) => void;
+  onShowResult: (id: number) => void;
   onError?: (error: string) => void;
   editingWorkflow: number | null;
   showAddNode: number | null;
-  isExecuting?: boolean;
+  executingWorkflows: Set<number>;
+  executionResults: Record<number, { type: 'text' | 'pdf'; result: string }>;
 }
 
 export function WorkflowList({ 
@@ -19,10 +21,12 @@ export function WorkflowList({
   onDelete, 
   onRun, 
   onAddNode,
+  onShowResult,
   onError,
   editingWorkflow,
   showAddNode,
-  isExecuting = false
+  executingWorkflows,
+  executionResults
 }: WorkflowListProps) {
   return (
     <div className="bg-white rounded-lg shadow">
@@ -43,10 +47,12 @@ export function WorkflowList({
               onDelete={onDelete}
               onRun={onRun}
               onAddNode={onAddNode}
+              onShowResult={onShowResult}
               onError={onError}
               isEditing={editingWorkflow === workflow.id}
               showAddNode={showAddNode === workflow.id}
-              isExecuting={isExecuting}
+              isExecuting={executingWorkflows.has(workflow.id)}
+              executionResults={executionResults}
             />
           ))
         )}
