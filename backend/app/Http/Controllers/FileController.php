@@ -26,7 +26,7 @@ class FileController extends Controller
         return response()->json([
             'message' => 'ファイルがアップロードされました',
             'filename' => $filename,
-            'path' => $path,
+            'file_path' => $path,
             'size' => $file->getSize(),
         ], 201);
     }

@@ -11,6 +11,7 @@ use App\Domain\Entities\NodeType;
 use App\Domain\Repositories\WorkflowRepositoryInterface;
 use App\Domain\Repositories\NodeRepositoryInterface;
 use App\Domain\Services\NodeProcessorFactory;
+use App\Domain\Services\PdfGeneratorService;
 use Illuminate\Database\Eloquent\Collection;
 
 class WorkflowUsecase
@@ -18,7 +19,8 @@ class WorkflowUsecase
     public function __construct(
         private WorkflowRepositoryInterface $workflowRepository,
         private NodeRepositoryInterface $nodeRepository,
-        private NodeProcessorFactory $nodeProcessorFactory
+        private NodeProcessorFactory $nodeProcessorFactory,
+        private PdfGeneratorService $pdfGeneratorService
     ) {}
 
     public function getAllWorkflows(): Collection
@@ -33,7 +35,7 @@ class WorkflowUsecase
 
     public function createWorkflow(CreateWorkflowDTO $dto): Workflow
     {
-        $workflow = Workflow::create($dto->name);
+        $workflow = Workflow::create($dto->name, $dto->inputType, $dto->outputType, $dto->inputData);
         return $this->workflowRepository->save($workflow);
     }
 
@@ -44,7 +46,8 @@ class WorkflowUsecase
             return null;
         }
 
-        $updatedWorkflow = $workflow->updateName($dto->name);
+        $updatedWorkflow = $workflow->updateInputOutputConfig($dto->inputType, $dto->outputType, $dto->inputData);
+        $updatedWorkflow = $updatedWorkflow->updateName($dto->name);
         return $this->workflowRepository->save($updatedWorkflow);
     }
 
@@ -78,7 +81,7 @@ class WorkflowUsecase
         }
 
         $results = [];
-        $currentInput = null;
+        $currentInput = $workflow->inputData; // ワークフローの初期入力データを使用
 
         foreach ($nodes as $nodeModel) {
             try {
@@ -108,11 +111,20 @@ class WorkflowUsecase
             }
         }
 
+        // PDF出力の場合、Base64エンコードされたデータを返す
+        $finalResult = $currentInput;
+        if ($workflow->outputType === 'pdf' && $finalResult) {
+            // テキストをPDFに変換
+            $finalResult = $this->pdfGeneratorService->generatePdfFromText($finalResult);
+        }
+
         return [
             'workflow_id' => $id,
             'workflow_name' => $workflow->name,
+            'input_type' => $workflow->inputType,
+            'output_type' => $workflow->outputType,
             'results' => $results,
-            'final_result' => $currentInput
+            'final_result' => $finalResult
         ];
     }
 

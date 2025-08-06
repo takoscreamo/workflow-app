@@ -9,11 +9,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newWorkflowName, setNewWorkflowName] = useState('');
+  const [newWorkflowInputType, setNewWorkflowInputType] = useState<'text' | 'pdf'>('text');
+  const [newWorkflowOutputType, setNewWorkflowOutputType] = useState<'text' | 'pdf'>('text');
+  const [newWorkflowInputData, setNewWorkflowInputData] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [editingWorkflow, setEditingWorkflow] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [editingInputType, setEditingInputType] = useState<'text' | 'pdf'>('text');
+  const [editingOutputType, setEditingOutputType] = useState<'text' | 'pdf'>('text');
+  const [editingInputData, setEditingInputData] = useState('');
+  const [editingSelectedFile, setEditingSelectedFile] = useState<File | null>(null);
   const [showAddNode, setShowAddNode] = useState<number | null>(null);
   const [nodeType, setNodeType] = useState<NodeType>('' as NodeType);
   const [nodeConfig, setNodeConfig] = useState<Record<string, unknown>>({});
+  const [executionResult, setExecutionResult] = useState<string | null>(null);
+  const [showExecutionResult, setShowExecutionResult] = useState(false);
 
   useEffect(() => {
     loadWorkflows();
@@ -31,14 +41,39 @@ export default function Home() {
     }
   };
 
+  const handleFileUpload = async (file: File): Promise<string> => {
+    try {
+      const result = await api.uploadFile(file);
+      return result.file_path;
+    } catch (err) {
+      throw new Error('ファイルのアップロードに失敗しました');
+    }
+  };
+
   const createWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWorkflowName.trim()) return;
 
     try {
-      const workflow = await api.createWorkflow({ name: newWorkflowName });
+      let inputData = newWorkflowInputData;
+      
+      // PDFファイルが選択されている場合はアップロード
+      if (newWorkflowInputType === 'pdf' && selectedFile) {
+        inputData = await handleFileUpload(selectedFile);
+      }
+
+      const workflow = await api.createWorkflow({ 
+        name: newWorkflowName,
+        input_type: newWorkflowInputType,
+        output_type: newWorkflowOutputType,
+        input_data: inputData
+      });
       setWorkflows([...workflows, workflow]);
       setNewWorkflowName('');
+      setNewWorkflowInputType('text');
+      setNewWorkflowOutputType('text');
+      setNewWorkflowInputData('');
+      setSelectedFile(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ワークフローの作成に失敗しました');
     }
@@ -47,21 +82,45 @@ export default function Home() {
   const startEditing = (workflow: Workflow) => {
     setEditingWorkflow(workflow.id);
     setEditingName(workflow.name);
+    setEditingInputType(workflow.input_type);
+    setEditingOutputType(workflow.output_type);
+    setEditingInputData(workflow.input_data || '');
+    setEditingSelectedFile(null);
   };
 
   const cancelEditing = () => {
     setEditingWorkflow(null);
     setEditingName('');
+    setEditingInputType('text');
+    setEditingOutputType('text');
+    setEditingInputData('');
+    setEditingSelectedFile(null);
   };
 
   const updateWorkflow = async (id: number) => {
     if (!editingName.trim()) return;
 
     try {
-      const updatedWorkflow = await api.updateWorkflow(id, { name: editingName });
+      let inputData = editingInputData;
+      
+      // PDFファイルが選択されている場合はアップロード
+      if (editingInputType === 'pdf' && editingSelectedFile) {
+        inputData = await handleFileUpload(editingSelectedFile);
+      }
+
+      const updatedWorkflow = await api.updateWorkflow(id, { 
+        name: editingName,
+        input_type: editingInputType,
+        output_type: editingOutputType,
+        input_data: inputData
+      });
       setWorkflows(workflows.map(w => w.id === id ? updatedWorkflow : w));
       setEditingWorkflow(null);
       setEditingName('');
+      setEditingInputType('text');
+      setEditingOutputType('text');
+      setEditingInputData('');
+      setEditingSelectedFile(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ワークフローの更新に失敗しました');
     }
@@ -82,7 +141,18 @@ export default function Home() {
     try {
       const result = await api.runWorkflow(id);
       console.log('実行結果:', result);
-      alert(`実行完了！最終結果: ${result.final_result || 'なし'}`);
+      
+      if (result.output_type === 'pdf' && result.final_result) {
+        // PDFとしてダウンロード
+        await api.downloadPdf(result.final_result, `workflow_result_${id}.pdf`);
+      } else if (result.final_result) {
+        // テキストとして表示
+        setExecutionResult(result.final_result);
+        setShowExecutionResult(true);
+      } else {
+        setExecutionResult('結果がありません');
+        setShowExecutionResult(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ワークフローの実行に失敗しました');
     }
@@ -138,6 +208,11 @@ export default function Home() {
     setNodeConfig(defaultConfig);
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('クリップボードにコピーしました');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -162,14 +237,67 @@ export default function Home() {
         {/* 新しいワークフロー作成フォーム */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">新しいワークフローを作成</h2>
-          <form onSubmit={createWorkflow} className="flex gap-4">
-            <input
-              type="text"
-              value={newWorkflowName}
-              onChange={(e) => setNewWorkflowName(e.target.value)}
-              placeholder="ワークフロー名を入力"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <form onSubmit={createWorkflow} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ワークフロー名</label>
+              <input
+                type="text"
+                value={newWorkflowName}
+                onChange={(e) => setNewWorkflowName(e.target.value)}
+                placeholder="ワークフロー名を入力"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">入力種別</label>
+                <select
+                  value={newWorkflowInputType}
+                  onChange={(e) => setNewWorkflowInputType(e.target.value as 'text' | 'pdf')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="text">テキスト</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">出力種別</label>
+                <select
+                  value={newWorkflowOutputType}
+                  onChange={(e) => setNewWorkflowOutputType(e.target.value as 'text' | 'pdf')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="text">テキスト</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </div>
+            </div>
+
+            {newWorkflowInputType === 'text' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">入力データ</label>
+                <textarea
+                  value={newWorkflowInputData}
+                  onChange={(e) => setNewWorkflowInputData(e.target.value)}
+                  placeholder="入力テキストを入力してください"
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">PDFファイル</label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -178,6 +306,40 @@ export default function Home() {
             </button>
           </form>
         </div>
+
+        {/* 実行結果表示モーダル */}
+        {showExecutionResult && executionResult && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">実行結果</h3>
+                <button
+                  onClick={() => setShowExecutionResult(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="bg-gray-100 p-4 rounded-lg mb-4">
+                <pre className="whitespace-pre-wrap text-sm">{executionResult}</pre>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => copyToClipboard(executionResult)}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  コピー
+                </button>
+                <button
+                  onClick={() => setShowExecutionResult(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ワークフロー一覧 */}
         <div className="bg-white rounded-lg shadow">
@@ -195,67 +357,124 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       {editingWorkflow === workflow.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            className="flex-1 px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <button
-                            onClick={() => updateWorkflow(workflow.id)}
-                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                          >
-                            保存
-                          </button>
-                          <button
-                            onClick={cancelEditing}
-                            className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                          >
-                            キャンセル
-                          </button>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">ワークフロー名</label>
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">入力種別</label>
+                              <select
+                                value={editingInputType}
+                                onChange={(e) => setEditingInputType(e.target.value as 'text' | 'pdf')}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="text">テキスト</option>
+                                <option value="pdf">PDF</option>
+                              </select>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">出力種別</label>
+                              <select
+                                value={editingOutputType}
+                                onChange={(e) => setEditingOutputType(e.target.value as 'text' | 'pdf')}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="text">テキスト</option>
+                                <option value="pdf">PDF</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {editingInputType === 'text' ? (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">入力データ</label>
+                              <textarea
+                                value={editingInputData}
+                                onChange={(e) => setEditingInputData(e.target.value)}
+                                rows={3}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">PDFファイル</label>
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => setEditingSelectedFile(e.target.files?.[0] || null)}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => updateWorkflow(workflow.id)}
+                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                              保存
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            >
+                              キャンセル
+                            </button>
+                          </div>
                         </div>
                       ) : (
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {workflow.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            ノード数: {workflow.nodes?.length || 0}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      {editingWorkflow !== workflow.id && (
                         <>
-                          <button
-                            onClick={() => setShowAddNode(workflow.id)}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          >
-                            ノード追加
-                          </button>
-                          <button
-                            onClick={() => startEditing(workflow)}
-                            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                          >
-                            編集
-                          </button>
-                          <button
-                            onClick={() => runWorkflow(workflow.id)}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                          >
-                            実行
-                          </button>
-                          <button
-                            onClick={() => deleteWorkflow(workflow.id)}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          >
-                            削除
-                          </button>
+                          <div className="flex items-center gap-4">
+                            <h3 className="text-lg font-medium">{workflow.name}</h3>
+                            <div className="flex gap-2 text-sm text-gray-500">
+                              <span>入力: {workflow.input_type === 'text' ? 'テキスト' : 'PDF'}</span>
+                              <span>出力: {workflow.output_type === 'text' ? 'テキスト' : 'PDF'}</span>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-sm text-gray-600">
+                            ノード数: {workflow.nodes.length}
+                          </div>
                         </>
                       )}
                     </div>
+                    
+                    {editingWorkflow !== workflow.id && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEditing(workflow)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => runWorkflow(workflow.id)}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        >
+                          実行
+                        </button>
+                        <button
+                          onClick={() => setShowAddNode(showAddNode === workflow.id ? null : workflow.id)}
+                          className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          ノード追加
+                        </button>
+                        <button
+                          onClick={() => deleteWorkflow(workflow.id)}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {/* ノード追加フォーム */}
@@ -311,7 +530,7 @@ export default function Home() {
                         )}
 
                         {nodeType === NodeType.GENERATIVE_AI && (
-                          <div className="space-y-3">
+                          <>
                             <div>
                               <label className="block text-xs text-gray-600 mb-1">プロンプト</label>
                               <textarea
@@ -319,7 +538,7 @@ export default function Home() {
                                 onChange={(e) => setNodeConfig({ ...nodeConfig, prompt: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows={3}
-                                placeholder="AIへの指示"
+                                placeholder="AIへの指示を入力してください"
                               />
                             </div>
                             <div>
@@ -333,39 +552,23 @@ export default function Home() {
                                 <option value="gpt-4">GPT-4</option>
                               </select>
                             </div>
-                          </div>
+                          </>
                         )}
 
                         <div className="flex gap-2">
                           <button
                             onClick={() => addNode(workflow.id)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             追加
                           </button>
                           <button
                             onClick={() => setShowAddNode(null)}
-                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
                           >
                             キャンセル
                           </button>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {workflow.nodes && workflow.nodes.length > 0 && (
-                    <div className="mt-3">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">ノード一覧:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {workflow.nodes.map((node) => (
-                          <span
-                            key={node.id}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                          >
-                            {node.node_type}
-                          </span>
-                        ))}
                       </div>
                     </div>
                   )}

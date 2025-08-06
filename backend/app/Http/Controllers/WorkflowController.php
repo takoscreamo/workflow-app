@@ -32,6 +32,9 @@ class WorkflowController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'input_type' => 'sometimes|string|in:text,pdf',
+            'output_type' => 'sometimes|string|in:text,pdf',
+            'input_data' => 'sometimes|nullable|string',
         ]);
 
         $dto = CreateWorkflowDTO::fromRequest($request->all());
@@ -96,6 +99,9 @@ class WorkflowController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'input_type' => 'sometimes|string|in:text,pdf',
+            'output_type' => 'sometimes|string|in:text,pdf',
+            'input_data' => 'sometimes|nullable|string',
         ]);
 
         $dto = UpdateWorkflowDTO::fromRequest((int) $id, $request->all());

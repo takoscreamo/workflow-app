@@ -6,14 +6,20 @@ class UpdateWorkflowDTO
 {
     public function __construct(
         public readonly int $id,
-        public readonly string $name
+        public readonly string $name,
+        public readonly string $inputType,
+        public readonly string $outputType,
+        public readonly ?string $inputData
     ) {}
 
     public static function fromRequest(int $id, array $data): self
     {
         return new self(
             id: $id,
-            name: $data['name']
+            name: $data['name'],
+            inputType: $data['input_type'] ?? 'text',
+            outputType: $data['output_type'] ?? 'text',
+            inputData: $data['input_data'] ?? null
         );
     }
 }

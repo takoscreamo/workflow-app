@@ -11,6 +11,9 @@ class WorkflowModel extends Model
 
     protected $fillable = [
         'name',
+        'input_type',
+        'output_type',
+        'input_data',
     ];
 
     protected $casts = [

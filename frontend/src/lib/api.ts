@@ -1,13 +1,16 @@
-import { Workflow, CreateWorkflowRequest, AddNodeRequest, WorkflowExecutionResult, Node } from '@/types/workflow';
+import { Workflow, CreateWorkflowRequest, UpdateWorkflowRequest, AddNodeRequest, WorkflowRunResult, Node } from '@/types/workflow';
 
 const API_BASE_URL = 'http://localhost:8000/api';
+
+// デバッグ用ログ
+console.log('API_BASE_URL:', API_BASE_URL);
 
 export const api = {
   // ワークフロー一覧を取得
   async getWorkflows(): Promise<Workflow[]> {
     const response = await fetch(`${API_BASE_URL}/workflows`);
     if (!response.ok) {
-      throw new Error('ワークフロー一覧の取得に失敗しました');
+      throw new Error('ワークフローの取得に失敗しました');
     }
     return response.json();
   },
@@ -27,17 +30,8 @@ export const api = {
     return response.json();
   },
 
-  // ワークフローを取得
-  async getWorkflow(id: number): Promise<Workflow> {
-    const response = await fetch(`${API_BASE_URL}/workflows/${id}`);
-    if (!response.ok) {
-      throw new Error('ワークフローの取得に失敗しました');
-    }
-    return response.json();
-  },
-
   // ワークフローを更新
-  async updateWorkflow(id: number, data: CreateWorkflowRequest): Promise<Workflow> {
+  async updateWorkflow(id: number, data: UpdateWorkflowRequest): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'PUT',
       headers: {
@@ -61,7 +55,7 @@ export const api = {
     }
   },
 
-  // ワークフローにノードを追加
+  // ノードを追加
   async addNode(workflowId: number, data: AddNodeRequest): Promise<Node> {
     const response = await fetch(`${API_BASE_URL}/workflows/${workflowId}/nodes`, {
       method: 'POST',
@@ -77,16 +71,48 @@ export const api = {
   },
 
   // ワークフローを実行
-  async runWorkflow(id: number): Promise<WorkflowExecutionResult> {
+  async runWorkflow(id: number): Promise<WorkflowRunResult> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}/run`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
     if (!response.ok) {
       throw new Error('ワークフローの実行に失敗しました');
     }
     return response.json();
+  },
+
+  // ファイルをアップロード
+  async uploadFile(file: File): Promise<{ file_path: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/files/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) {
+      throw new Error('ファイルのアップロードに失敗しました');
+    }
+    return response.json();
+  },
+
+  // PDFファイルをダウンロード
+  async downloadPdf(content: string, filename: string): Promise<void> {
+    // Base64デコード
+    const binaryString = atob(content);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   },
 }; 
