@@ -117,13 +117,7 @@ export function NodeForm({ workflowId, workflow, onSuccess, onCancel, onError }:
           />
         )}
 
-        {nodeType === NodeType.EXTRACT_TEXT && (
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-700">
-              PDFファイルは入力時にアップロードしてください。このノードは入力のPDFからテキストを自動抽出します。
-            </p>
-          </div>
-        )}
+
 
         {nodeType === NodeType.GENERATIVE_AI && (
           <>

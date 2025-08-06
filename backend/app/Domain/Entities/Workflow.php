@@ -87,12 +87,18 @@ class Workflow
     /**
      * ノードを追加できるかどうかを検証するドメインルール
      * PDF入力の場合、最初のノードはEXTRACT_TEXTである必要がある
+     * テキスト入力の場合、EXTRACT_TEXTノードは追加できない
      */
     public function canAddNode(NodeType $nodeType): bool
     {
         // PDF入力で最初のノードの場合、EXTRACT_TEXTのみ許可
         if ($this->inputType === 'pdf' && $this->nodes->isEmpty()) {
             return $nodeType === NodeType::EXTRACT_TEXT;
+        }
+
+        // テキスト入力の場合、EXTRACT_TEXTは許可しない
+        if ($this->inputType === 'text' && $nodeType === NodeType::EXTRACT_TEXT) {
+            return false;
         }
 
         return true;
@@ -105,7 +111,13 @@ class Workflow
     public function validateNodeAddition(NodeType $nodeType): void
     {
         if (!$this->canAddNode($nodeType)) {
-            throw new WorkflowDomainException('PDF入力の場合、最初のノードは「テキスト抽出」である必要があります');
+            if ($this->inputType === 'pdf' && $this->nodes->isEmpty()) {
+                throw new WorkflowDomainException('PDF入力の場合、最初のノードは「テキスト抽出」である必要があります');
+            }
+            if ($this->inputType === 'text' && $nodeType === NodeType::EXTRACT_TEXT) {
+                throw new WorkflowDomainException('テキスト入力の場合、「PDFテキスト抽出」ノードは追加できません');
+            }
+            throw new WorkflowDomainException('このノードタイプは追加できません');
         }
     }
 }
