@@ -66,6 +66,23 @@ services:
     networks:
       - workflow-network
 
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: workflow-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+    depends_on:
+      - mysql
+    networks:
+      - workflow-network
+
 volumes:
   mysql_data:
 
