@@ -65,6 +65,17 @@ make init
 - **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)** - プロジェクトの包括的なガイド（アーキテクチャ、開発環境など）
 - **[API.md](API.md)** - バックエンドAPIの詳細仕様
 
+## 🧪 テストとテスト実行方法
+
+テストはPHPUnitを使用しています。
+テストを実行するには、以下のコマンドを実行してください。
+
+```bash
+make test
+```
+
+テストコードは **[backend/tests](backend/tests)** に配置されています。
+
 ## ⚠️ 注意事項
 
 1. **OpenRouter APIキー**: GENERATIVE_AIノードを使用する場合は、OpenRouter APIキーの設定が必要です

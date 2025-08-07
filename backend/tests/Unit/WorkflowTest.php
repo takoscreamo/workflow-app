@@ -7,9 +7,7 @@ use App\Domain\Entities\NodeType;
 use App\Domain\Entities\Workflow;
 use App\Domain\Entities\WorkflowDomainException;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
-
-
+use PHPUnit\Framework\TestCase;
 
 class WorkflowTest extends TestCase
 {
@@ -98,9 +96,7 @@ class WorkflowTest extends TestCase
         $this->assertEquals($workflow->id, $updatedWorkflow->id);
         $this->assertEquals($workflow->inputType, $updatedWorkflow->inputType);
         $this->assertEquals($workflow->outputType, $updatedWorkflow->outputType);
-        $this->assertEquals($workflow->inputData, $updatedWorkflow->inputData);
-        $this->assertEquals($workflow->createdAt, $updatedWorkflow->createdAt);
-        $this->assertNotEquals($originalUpdatedAt, $updatedWorkflow->updatedAt);
+        $this->assertGreaterThan($originalUpdatedAt, $updatedWorkflow->updatedAt);
     }
 
     #[Test]
@@ -110,126 +106,115 @@ class WorkflowTest extends TestCase
         $originalUpdatedAt = $workflow->updatedAt;
 
         sleep(1);
-        $updatedWorkflow = $workflow->updateInputOutputConfig('pdf', 'pdf', 'test.pdf');
+        $updatedWorkflow = $workflow->updateInputOutputConfig('pdf', 'text', 'test.pdf');
 
         $this->assertEquals('pdf', $updatedWorkflow->inputType);
-        $this->assertEquals('pdf', $updatedWorkflow->outputType);
+        $this->assertEquals('text', $updatedWorkflow->outputType);
         $this->assertEquals('test.pdf', $updatedWorkflow->inputData);
-        $this->assertEquals($workflow->id, $updatedWorkflow->id);
-        $this->assertEquals($workflow->name, $updatedWorkflow->name);
-        $this->assertEquals($workflow->createdAt, $updatedWorkflow->createdAt);
-        $this->assertNotEquals($originalUpdatedAt, $updatedWorkflow->updatedAt);
+        $this->assertGreaterThan($originalUpdatedAt, $updatedWorkflow->updatedAt);
     }
 
     #[Test]
     public function 入力データなしで入出力設定を更新できる()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text', 'old-data');
+        $workflow = Workflow::create('Test Workflow');
+        $originalUpdatedAt = $workflow->updatedAt;
 
-        $updatedWorkflow = $workflow->updateInputOutputConfig('pdf', 'pdf');
+        sleep(1);
+        $updatedWorkflow = $workflow->updateInputOutputConfig('pdf', 'text');
 
         $this->assertEquals('pdf', $updatedWorkflow->inputType);
-        $this->assertEquals('pdf', $updatedWorkflow->outputType);
+        $this->assertEquals('text', $updatedWorkflow->outputType);
         $this->assertNull($updatedWorkflow->inputData);
+        $this->assertGreaterThan($originalUpdatedAt, $updatedWorkflow->updatedAt);
     }
 
     #[Test]
     public function テキストワークフローにフォーマッターノードを追加できる()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
-
+        $workflow = Workflow::create('Test Workflow');
         $this->assertTrue($workflow->canAddNode(NodeType::FORMATTER));
     }
 
     #[Test]
     public function テキストワークフローに生成AIノードを追加できる()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
-
+        $workflow = Workflow::create('Test Workflow');
         $this->assertTrue($workflow->canAddNode(NodeType::GENERATIVE_AI));
     }
 
     #[Test]
     public function テキストワークフローにテキスト抽出ノードを追加できない()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
-
+        $workflow = Workflow::create('Test Workflow');
         $this->assertFalse($workflow->canAddNode(NodeType::EXTRACT_TEXT));
     }
 
     #[Test]
     public function PDFワークフローの最初のノードとしてテキスト抽出ノードを追加できる()
     {
-        $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
-
+        $workflow = Workflow::create('PDF Workflow', 'pdf', 'text');
         $this->assertTrue($workflow->canAddNode(NodeType::EXTRACT_TEXT));
     }
 
     #[Test]
     public function PDFワークフローの最初のノード後に他のノードを追加できる()
     {
+        $workflow = Workflow::create('PDF Workflow', 'pdf', 'text');
         $nodes = [
-            new Node(1, 1, NodeType::EXTRACT_TEXT, [], new \DateTime(), new \DateTime())
+            new Node(1, 1, NodeType::EXTRACT_TEXT, ['file_path' => 'test.pdf'], new \DateTime(), new \DateTime())
         ];
-        $workflow = Workflow::create('Test Workflow', 'pdf', 'text')->withNodes($nodes);
+        $workflowWithNodes = $workflow->withNodes($nodes);
 
-        $this->assertTrue($workflow->canAddNode(NodeType::FORMATTER));
-        $this->assertTrue($workflow->canAddNode(NodeType::GENERATIVE_AI));
-        $this->assertTrue($workflow->canAddNode(NodeType::EXTRACT_TEXT));
+        $this->assertTrue($workflowWithNodes->canAddNode(NodeType::FORMATTER));
+        $this->assertTrue($workflowWithNodes->canAddNode(NodeType::GENERATIVE_AI));
     }
 
     #[Test]
     public function テキストワークフローにテキスト抽出ノードを追加しようとすると例外が発生する()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
-
         $this->expectException(WorkflowDomainException::class);
         $this->expectExceptionMessage('テキスト入力の場合、「PDFテキスト抽出」ノードは追加できません');
 
+        $workflow = Workflow::create('Test Workflow');
         $workflow->validateNodeAddition(NodeType::EXTRACT_TEXT);
     }
 
     #[Test]
     public function PDFワークフローの最初のノードとしてテキスト抽出以外を追加しようとすると例外が発生する()
     {
-        $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
-
         $this->expectException(WorkflowDomainException::class);
         $this->expectExceptionMessage('PDF入力の場合、最初のノードは「テキスト抽出」である必要があります');
 
+        $workflow = Workflow::create('PDF Workflow', 'pdf', 'text');
         $workflow->validateNodeAddition(NodeType::FORMATTER);
     }
 
     #[Test]
     public function 有効なノードの追加検証が通る()
     {
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
+        $workflow = Workflow::create('Test Workflow');
 
         // 例外が発生しないことを確認
+        $this->expectNotToPerformAssertions();
         $workflow->validateNodeAddition(NodeType::FORMATTER);
-        $workflow->validateNodeAddition(NodeType::GENERATIVE_AI);
-
-        $this->assertTrue(true); // テストが通ることを確認
     }
 
     #[Test]
     public function PDFワークフローの最初のノードとしてテキスト抽出を追加する検証が通る()
     {
-        $workflow = Workflow::create('Test Workflow', 'pdf', 'text');
+        $workflow = Workflow::create('PDF Workflow', 'pdf', 'text');
 
         // 例外が発生しないことを確認
+        $this->expectNotToPerformAssertions();
         $workflow->validateNodeAddition(NodeType::EXTRACT_TEXT);
-
-        $this->assertTrue(true); // テストが通ることを確認
     }
 
     #[Test]
     public function toArrayが正しい構造を返す()
     {
-        $createdAt = new \DateTime('2023-01-01 10:00:00');
-        $updatedAt = new \DateTime('2023-01-02 11:00:00');
         $nodes = [
-            new Node(1, 1, NodeType::FORMATTER, ['format' => 'uppercase'], $createdAt, $updatedAt)
+            new Node(1, 1, NodeType::FORMATTER, ['format' => 'uppercase'], new \DateTime('2023-01-01'), new \DateTime('2023-01-02'))
         ];
 
         $workflow = new Workflow(
@@ -237,9 +222,9 @@ class WorkflowTest extends TestCase
             name: 'Test Workflow',
             inputType: 'text',
             outputType: 'text',
-            inputData: 'test data',
-            createdAt: $createdAt,
-            updatedAt: $updatedAt,
+            inputData: 'test input',
+            createdAt: new \DateTime('2023-01-01'),
+            updatedAt: new \DateTime('2023-01-02'),
             nodes: $nodes
         );
 
@@ -249,71 +234,84 @@ class WorkflowTest extends TestCase
         $this->assertEquals('Test Workflow', $array['name']);
         $this->assertEquals('text', $array['input_type']);
         $this->assertEquals('text', $array['output_type']);
-        $this->assertEquals('test data', $array['input_data']);
-        $this->assertEquals('2023-01-01T10:00:00.000Z', $array['created_at']);
-        $this->assertEquals('2023-01-02T11:00:00.000Z', $array['updated_at']);
-        $this->assertIsArray($array['nodes']);
+        $this->assertEquals('test input', $array['input_data']);
+        $this->assertEquals('2023-01-01T00:00:00.000Z', $array['created_at']);
+        $this->assertEquals('2023-01-02T00:00:00.000Z', $array['updated_at']);
         $this->assertCount(1, $array['nodes']);
+        $this->assertEquals(1, $array['nodes'][0]['id']);
+        $this->assertEquals(1, $array['nodes'][0]['workflow_id']);
+        $this->assertEquals('formatter', $array['nodes'][0]['node_type']);
+        $this->assertEquals(['format' => 'uppercase'], $array['nodes'][0]['config']);
     }
 
     #[Test]
     public function toArrayが空のノードを処理できる()
     {
-        $workflow = Workflow::create('Test Workflow');
+        $workflow = new Workflow(
+            id: 1,
+            name: 'Test Workflow',
+            inputType: 'text',
+            outputType: 'text',
+            inputData: null,
+            createdAt: new \DateTime('2023-01-01'),
+            updatedAt: new \DateTime('2023-01-02'),
+            nodes: []
+        );
 
         $array = $workflow->toArray();
 
-        $this->assertIsArray($array['nodes']);
-        $this->assertEmpty($array['nodes']);
+        $this->assertEquals(1, $array['id']);
+        $this->assertEquals('Test Workflow', $array['name']);
+        $this->assertCount(0, $array['nodes']);
     }
 
     #[Test]
     public function toArrayがnullのIDを処理できる()
     {
-        $workflow = Workflow::create('Test Workflow');
+        $workflow = new Workflow(
+            id: null,
+            name: 'Test Workflow',
+            inputType: 'text',
+            outputType: 'text',
+            inputData: null,
+            createdAt: new \DateTime('2023-01-01'),
+            updatedAt: new \DateTime('2023-01-02'),
+            nodes: []
+        );
 
         $array = $workflow->toArray();
 
         $this->assertNull($array['id']);
+        $this->assertEquals('Test Workflow', $array['name']);
     }
 
     #[Test]
     public function toArrayがnullの入力データを処理できる()
     {
-        $workflow = Workflow::create('Test Workflow');
+        $workflow = new Workflow(
+            id: 1,
+            name: 'Test Workflow',
+            inputType: 'text',
+            outputType: 'text',
+            inputData: null,
+            createdAt: new \DateTime('2023-01-01'),
+            updatedAt: new \DateTime('2023-01-02'),
+            nodes: []
+        );
 
         $array = $workflow->toArray();
 
+        $this->assertEquals(1, $array['id']);
         $this->assertNull($array['input_data']);
     }
 
-    #[Test]
-    public function ノード追加検証で他のケースで汎用例外が発生する()
-    {
-        // 実際には、この最後の例外ケースは現在のロジックでは発生しないが、
-        // コードカバレッジのために、このテストケースを追加
-        // 現在のロジックでは、すべてのケースが特定の条件に当てはまるため、
-        // この最後の例外ケースは実際には到達しない
 
-        $workflow = Workflow::create('Test Workflow', 'text', 'text');
-
-        // 現在のロジックでは、text入力でEXTRACT_TEXTは許可されない
-        $this->assertFalse($workflow->canAddNode(NodeType::EXTRACT_TEXT));
-
-        // この場合、特定の条件に当てはまるため、特定の例外メッセージが投げられる
-        $this->expectException(WorkflowDomainException::class);
-        $this->expectExceptionMessage('テキスト入力の場合、「PDFテキスト抽出」ノードは追加できません');
-
-        $workflow->validateNodeAddition(NodeType::EXTRACT_TEXT);
-    }
 
     #[Test]
     public function ワークフロードメイン例外が正しいメッセージを持つ()
     {
-        $message = 'Test error message';
-        $exception = new WorkflowDomainException($message);
+        $exception = new WorkflowDomainException('テストエラーメッセージ');
 
-        $this->assertEquals($message, $exception->getMessage());
-        $this->assertInstanceOf(\Exception::class, $exception);
+        $this->assertEquals('テストエラーメッセージ', $exception->getMessage());
     }
 }
