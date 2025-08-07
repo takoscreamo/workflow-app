@@ -31,10 +31,33 @@ class RunWorkflowJob implements ShouldQueue
      */
     public function handle(WorkflowUsecase $workflowUsecase): void
     {
+        Log::info("RunWorkflowJob.handle開始", [
+            'workflow_id' => $this->workflowId,
+            'session_id' => $this->sessionId,
+            'job_class' => get_class($this),
+            'job_id' => $this->job ? $this->job->getJobId() : 'unknown'
+        ]);
+
+        Log::info("RunWorkflowJob.handle開始直後", [
+            'workflow_id' => $this->workflowId,
+            'session_id' => $this->sessionId,
+            'workflow_usecase_class' => get_class($workflowUsecase)
+        ]);
+
         try {
             Log::info("ワークフロー実行開始", [
                 'workflow_id' => $this->workflowId,
                 'session_id' => $this->sessionId
+            ]);
+
+            Log::info("runWorkflow呼び出し前", [
+                'workflow_id' => $this->workflowId,
+                'workflow_usecase_class' => get_class($workflowUsecase)
+            ]);
+
+            Log::info("runWorkflow呼び出し直前", [
+                'workflow_id' => $this->workflowId,
+                'method_exists' => method_exists($workflowUsecase, 'runWorkflow')
             ]);
 
             $result = $workflowUsecase->runWorkflow($this->workflowId);
