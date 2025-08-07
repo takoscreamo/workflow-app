@@ -87,6 +87,8 @@ make test
   - NodeType.GENERATIVE_AIの実装: 1時間
   - NodeType.FORMATTERの実装: 1時間
   - NodeType.EXTRACT_TEXTの実装: 1時間
+  - 有向非巡回グラフ(DAG)構造の実装: 未実装
+  - AIエージェントノードの実装: 未実装
 - テスト、バグ修正: 4時間
 - ドキュメント: 2時間
 - 合計: 14時間
