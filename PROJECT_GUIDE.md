@@ -30,8 +30,6 @@ Workflow Appは、ノードベースのワークフローエンジンです。�
 ### アーキテクチャ原則
 
 - **オニオンアーキテクチャ**: 依存関係の方向を制御
-- **依存性注入**: テスタビリティの向上
-- **レイヤー分離**: 責務の明確化
 
 ---
 
@@ -461,48 +459,8 @@ make test
 # ユニットテストのみ
 make test-unit
 
-# Featureテストのみ
-make test-feature
-
 # 詳細出力付きテスト
 make test-all
-```
-
-### テスト例
-
-**ユニットテスト:**
-```php
-// tests/Unit/FormatterNodeProcessorTest.php
-class FormatterNodeProcessorTest extends TestCase
-{
-    public function test_uppercase_conversion(): void
-    {
-        $processor = new FormatterNodeProcessor();
-        $result = $processor->process('hello world', ['format_type' => 'uppercase']);
-        
-        $this->assertEquals('HELLO WORLD', $result);
-    }
-}
-```
-
-**Featureテスト:**
-```php
-// tests/Feature/WorkflowTest.php
-class WorkflowTest extends TestCase
-{
-    public function test_can_create_workflow(): void
-    {
-        $response = $this->postJson('/api/workflows', [
-            'name' => 'Test Workflow',
-            'input_type' => 'text',
-            'output_type' => 'text',
-            'input_data' => 'test input'
-        ]);
-
-        $response->assertStatus(200)
-                ->assertJson(['success' => true]);
-    }
-}
 ```
 
 ### Queueシステムのテスト
