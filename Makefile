@@ -18,6 +18,8 @@ help:
 	@echo "  make stop           - 全サービスを停止"
 	@echo "  make restart        - 全サービスを再起動"
 	@echo "  make logs           - ログを表示"
+	@echo "  make queue-status   - キューワーカー状態確認"
+	@echo "  make queue-restart  - キューワーカー再起動"
 	@echo ""
 	@echo "データベース:"
 	@echo "  make migrate        - マイグレーション実行"
@@ -43,14 +45,17 @@ setup: install-deps backend-setup
 	@echo "  make start"
 
 # 完全初期化（セットアップ、起動、マイグレーション、シーダー）
-init: setup backend-composer-install start migrate seed
+init: setup start backend-composer-install migrate seed queue-status
 	@echo "✅ 完全初期化完了！"
 	@echo "🌐 フロントエンド: http://localhost:3000"
 	@echo "🔗 バックエンドAPI: http://localhost:8000"
 	@echo "📚 SwaggerUI: http://localhost:8000/swagger"
+	@echo "📋 キューワーカーの状態を確認しました"
 # バックエンド依存関係インストール
 backend-composer-install:
 	@echo "📦 バックエンド依存関係をインストール中..."
+	@echo "⏳ バックエンドコンテナの起動を待機中..."
+	@until docker-compose ps backend | grep -q "Up"; do sleep 2; done
 	docker-compose exec backend composer install
 	@echo "✅ バックエンド依存関係インストール完了"
 
@@ -80,10 +85,13 @@ backend-setup:
 start:
 	@echo "🚀 アプリケーションを起動中..."
 	docker-compose up -d
+	@echo "⏳ コンテナの起動を待機中..."
+	@until docker-compose ps | grep -q "Up"; do sleep 2; done
 	@echo "✅ アプリケーションが起動しました"
 	@echo "🌐 フロントエンド: http://localhost:3000"
 	@echo "🔗 バックエンドAPI: http://localhost:8000"
 	@echo "📊 ログを確認するには: make logs"
+	@echo "📋 キューワーカーの状態を確認するには: make queue-status"
 
 # アプリケーション停止
 stop:
@@ -102,12 +110,24 @@ logs:
 # マイグレーション実行
 migrate:
 	@echo "🗄️ データベースマイグレーションを実行中..."
+	@echo "⏳ バックエンドコンテナの起動を待機中..."
+	@until docker-compose ps backend | grep -q "Up"; do sleep 2; done
+	@echo "⏳ MySQLコンテナの起動を待機中..."
+	@until docker-compose ps mysql | grep -q "Up"; do sleep 2; done
+	@echo "⏳ MySQLの準備完了を待機中..."
+	@until docker-compose exec mysql mysqladmin ping -h localhost -u root -proot --silent; do sleep 3; done
 	docker-compose exec backend php artisan migrate
 	@echo "✅ マイグレーション完了"
 
 # シーダー実行
 seed:
 	@echo "🌱 シーダーを実行中..."
+	@echo "⏳ バックエンドコンテナの起動を待機中..."
+	@until docker-compose ps backend | grep -q "Up"; do sleep 2; done
+	@echo "⏳ MySQLコンテナの起動を待機中..."
+	@until docker-compose ps mysql | grep -q "Up"; do sleep 2; done
+	@echo "⏳ MySQLの準備完了を待機中..."
+	@until docker-compose exec mysql mysqladmin ping -h localhost -u root -proot --silent; do sleep 3; done
 	docker-compose exec backend php artisan db:seed
 	@echo "✅ シーダー完了"
 
@@ -189,6 +209,20 @@ log-clear:
 	@echo "🗑️ ログをクリア中..."
 	docker-compose exec backend php artisan log:clear
 	@echo "✅ ログクリア完了"
+
+# キューワーカー状態確認
+queue-status:
+	@echo "📋 キューワーカーの状態:"
+	@docker-compose ps queue-worker
+	@echo ""
+	@echo "📊 キューワーカーのログ:"
+	@docker-compose logs --tail=10 queue-worker
+
+# キューワーカー再起動
+queue-restart:
+	@echo "🔄 キューワーカーを再起動中..."
+	docker-compose restart queue-worker
+	@echo "✅ キューワーカー再起動完了"
 
 # アプリケーション状態確認
 status:

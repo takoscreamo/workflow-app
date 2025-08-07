@@ -7,15 +7,12 @@ use App\Infrastructure\Models\WorkflowModel;
 use App\Infrastructure\Models\NodeModel;
 use App\Domain\Entities\NodeType;
 use App\Jobs\RunWorkflowJob;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AsyncWorkflowTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

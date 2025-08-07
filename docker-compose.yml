@@ -46,7 +46,7 @@ services:
     depends_on:
       - mysql
       - redis
-    command: php artisan queue:work --tries=3 --timeout=300
+    command: sh -c "until mysqladmin ping -h mysql -u root -ppassword --silent; do sleep 2; done && php artisan queue:work --tries=3 --timeout=300"
     networks:
       - workflow-network
 
