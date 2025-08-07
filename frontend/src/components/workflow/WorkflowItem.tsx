@@ -288,7 +288,7 @@ export function WorkflowItem({
         <div className="px-4 pb-4 border-t border-gray-100">
           <div className="mt-3">
             <h4 className="text-sm font-medium text-gray-700 mb-2">ノード一覧</h4>
-            <div className="max-h-32 overflow-y-auto">
+            <div className="max-h-48 overflow-y-auto">
               <NodeList
                 workflowId={workflow.id}
                 nodes={workflow.nodes}
