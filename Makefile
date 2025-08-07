@@ -43,11 +43,16 @@ setup: install-deps backend-setup
 	@echo "  make start"
 
 # 完全初期化（セットアップ、起動、マイグレーション、シーダー）
-init: setup start migrate seed
+init: setup backend-composer-install start migrate seed
 	@echo "✅ 完全初期化完了！"
 	@echo "🌐 フロントエンド: http://localhost:3000"
 	@echo "🔗 バックエンドAPI: http://localhost:8000"
 	@echo "📚 SwaggerUI: http://localhost:8000/swagger"
+# バックエンド依存関係インストール
+backend-composer-install:
+	@echo "📦 バックエンド依存関係をインストール中..."
+	docker-compose exec backend composer install
+	@echo "✅ バックエンド依存関係インストール完了"
 
 # 依存関係のインストール
 install-deps:
