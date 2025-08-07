@@ -17,7 +17,7 @@ class WorkflowSeeder extends Seeder
     {
         // サンプルワークフローを作成
         $workflow = WorkflowModel::create([
-            'name' => 'テキスト小文字変換ワークフロー',
+            'name' => 'サンプルワークフロー（全角大文字変換）',
             'input_type' => 'text',
             'output_type' => 'text',
             'input_data' => 'Hello World!',
