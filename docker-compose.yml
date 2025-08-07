@@ -46,7 +46,8 @@ services:
     depends_on:
       - mysql
       - redis
-    command: php artisan queue:work --tries=3 --timeout=300
+    command: php artisan queue:work --tries=3 --timeout=300 --sleep=3 --max-jobs=1000 --max-time=3600
+    restart: unless-stopped
     networks:
       - workflow-network
 

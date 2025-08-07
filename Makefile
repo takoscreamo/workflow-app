@@ -194,4 +194,25 @@ status:
 	@echo "  フロントエンド: http://localhost:3000"
 	@echo "  バックエンドAPI: http://localhost:8000"
 	@echo "  SwaggerUI: http://localhost:8000/swagger"
-	@echo "  Redis: localhost:6379" 
+	@echo "  Redis: localhost:6379"
+
+# Queue Worker管理
+queue-status:
+	@echo "📊 Queue Worker状態を確認中..."
+	@curl -s http://localhost:8000/api/queue/status | jq .
+
+queue-restart:
+	@echo "🔄 Queue Workerを再起動中..."
+	@curl -s -X POST http://localhost:8000/api/queue/restart | jq .
+
+queue-clear-failed:
+	@echo "🗑️ 失敗したジョブをクリア中..."
+	@curl -s -X POST http://localhost:8000/api/queue/clear-failed | jq .
+
+queue-health-check:
+	@echo "🏥 Queue Workerヘルスチェックを実行中..."
+	@docker-compose exec backend php artisan queue:health-check
+
+queue-restart-workers:
+	@echo "🔄 Queue Workerを手動で再起動中..."
+	@docker-compose exec backend php artisan queue:restart-workers 

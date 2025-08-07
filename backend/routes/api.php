@@ -44,3 +44,10 @@ Route::get('/health', function (): JsonResponse {
         'version' => '1.0.0'
     ]);
 });
+
+// Queue monitoring routes
+Route::prefix('queue')->group(function () {
+    Route::get('/status', [App\Http\Controllers\QueueController::class, 'status']);
+    Route::post('/restart', [App\Http\Controllers\QueueController::class, 'restart']);
+    Route::post('/clear-failed', [App\Http\Controllers\QueueController::class, 'clearFailed']);
+});
