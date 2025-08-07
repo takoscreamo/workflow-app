@@ -3,8 +3,12 @@
 ユーザーが自由に定義できる「ワークフロー（処理の流れ）」を構築し、実行できるアプリケーションです。
 ワークフローは複数の「ノード（処理単位）」で構成され、ノードを組み合わせてテキストを加工・生成・抽出できます。
 
+## 画面イメージ
+<img alt="Image" src="https://github.com/user-attachments/assets/65e14370-c282-4e5a-88dd-2581c9fcb34d" />
+
 ## 操作デモ動画(Youtube動画リンク)
-[!['ワークフローアプリケーションの操作デモ'](https://github.com/user-attachments/assets/65e14370-c282-4e5a-88dd-2581c9fcb34d)](https://youtu.be/hDZfLlGXatk)
+https://youtu.be/hDZfLlGXatk
+
 
 ## 🚀 セットアップと起動
 
@@ -23,7 +27,7 @@ cd workflow-app
 ### 2. セットアップと起動
 
 ```bash
-# 完全初期化（セットアップ、起動、マイグレーション、シーダーを一括実行）
+# 初期化（セットアップ、起動、マイグレーション、シーダーを一括実行）
 make init
 ```
 
