@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Workflow } from '@/types/workflow';
 import { Button } from '@/components/common/Button';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { InputField } from '@/components/forms/InputField';
 import { SelectField } from '@/components/forms/SelectField';
 import { TextareaField } from '@/components/forms/TextareaField';
@@ -129,7 +130,9 @@ export function WorkflowItem({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ${
+      isExecuting ? 'border-yellow-300 shadow-md' : ''
+    }`}>
       <div className="p-4">
         {isEditing ? (
           <div className="space-y-4">
@@ -206,6 +209,12 @@ export function WorkflowItem({
                 <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
                   ノード: {workflow.nodes.length}
                 </span>
+                {isExecuting && (
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded flex items-center gap-1">
+                    <div className="w-3 h-3 animate-spin rounded-full border border-yellow-600 border-t-transparent"></div>
+                    実行中
+                  </span>
+                )}
               </div>
             </div>
             
@@ -224,7 +233,12 @@ export function WorkflowItem({
                 onClick={() => onRun(workflow.id)}
                 disabled={isExecuting}
               >
-                {isExecuting ? '実行中...' : '実行'}
+                {isExecuting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 animate-spin rounded-full border border-white border-t-transparent"></div>
+                    実行中
+                  </div>
+                ) : '実行'}
               </Button>
               <Button
                 variant="primary"
