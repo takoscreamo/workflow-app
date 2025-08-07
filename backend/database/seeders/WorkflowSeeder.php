@@ -17,25 +17,19 @@ class WorkflowSeeder extends Seeder
     {
         // サンプルワークフローを作成
         $workflow = WorkflowModel::create([
-            'name' => 'サンプルワークフロー',
+            'name' => 'テキスト小文字変換ワークフロー',
+            'input_type' => 'text',
+            'output_type' => 'text',
+            'input_data' => 'Hello World!',
         ]);
 
         // サンプルノードを作成
         NodeModel::create([
             'workflow_id' => $workflow->id,
-            'node_type' => NodeType::EXTRACT_TEXT->value,
+            'node_type' => NodeType::FORMATTER->value,
             'config' => [
-                'description' => 'PDFからテキストを抽出',
-            ],
-        ]);
-
-        NodeModel::create([
-            'workflow_id' => $workflow->id,
-            'node_type' => NodeType::GENERATIVE_AI->value,
-            'config' => [
-                'prompt' => '以下のテキストを要約してください：',
-                'model' => 'google/gemma-3n-e2b-it:free',
-                'max_tokens' => 1000,
+                'format_type' => 'uppercase',
+                'description' => 'テキストを大文字に変換',
             ],
         ]);
 
@@ -43,8 +37,8 @@ class WorkflowSeeder extends Seeder
             'workflow_id' => $workflow->id,
             'node_type' => NodeType::FORMATTER->value,
             'config' => [
-                'format_type' => 'uppercase',
-                'description' => 'テキストを大文字に変換',
+                'format_type' => 'fullwidth',
+                'description' => 'テキストを全角に変換',
             ],
         ]);
     }
